@@ -39,6 +39,17 @@ function App() {
     fetchTransactions()
   }, [session, page])
 
+  function getTxnTimestamp(txn) {
+    const primary = txn.message_datetime_utc || txn.parsed_txn_datetime || txn.parsed_txn_date
+    if (primary) {
+      const ts = Date.parse(primary)
+      if (!Number.isNaN(ts)) return ts
+    }
+    const created = Date.parse(txn.created_at)
+    if (!Number.isNaN(created)) return created
+    return 0
+  }
+
   async function fetchTransactions() {
     setLoading(true)
     let data, error, count
@@ -51,7 +62,7 @@ function App() {
         const response = await supabase
           .from('transactions_enriched')
           .select('*', { count: 'exact' })
-          .order('created_at', { ascending: false })
+          .order('message_datetime_utc', { ascending: false })
           .range(from, to)
         
         data = response.data
@@ -68,7 +79,10 @@ function App() {
       }
 
       if (error) throw error
-      setTransactions(data || [])
+      const sorted = (data || [])
+        .slice()
+        .sort((a, b) => getTxnTimestamp(b) - getTxnTimestamp(a))
+      setTransactions(sorted)
     } catch (error) {
       console.error('Error fetching data:', error.message)
     } finally {
