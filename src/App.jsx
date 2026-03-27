@@ -1,22 +1,31 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
+import { useAppDispatch, useAppSelector } from './store/hooks'
+import { openTransactionModal, closeTransactionModal } from './store/slices/uiSlice'
+import { setPage, setPageSize, resetPagination } from './store/slices/filtersSlice'
 import { supabase } from './supabase'
 
 function App() {
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [session, setSession] = useState(null)
-  
+
   // Auth State
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
   // Pagination State
-  const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const ROWS_PER_PAGE = 10 
 
-  // Modal State
-  const [selectedTxn, setSelectedTxn] = useState(null)
+   
+  const dispatch = useAppDispatch()
+
+  const selectedTransactionID = useAppSelector((state) => state.ui.selectedTransactionID)
+  const isTransactionModalOpen = useAppSelector((state) => state.ui.isTransactionModalOpen)
+  const modalRef = useRef(null)
+
+  const page = useAppSelector((state) => state.filters.page)
+  const rowsPerPage = useAppSelector((state) => state.filters.pageSize)
+
 
   // 1. Check for existing session on load
   useEffect(() => {
@@ -28,11 +37,11 @@ function App() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      setPage(1) 
+      dispatch(resetPagination())
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [dispatch])
 
   // 2. Fetch data
   useEffect(() => {
@@ -56,20 +65,20 @@ function App() {
 
     try {
       if (session) {
-        const from = (page - 1) * ROWS_PER_PAGE
-        const to = from + ROWS_PER_PAGE - 1
+        const from = (page - 1) * rowsPerPage
+        const to = from + rowsPerPage - 1
 
         const response = await supabase
           .from('transactions_enriched')
           .select('*', { count: 'exact' })
           .order('message_datetime_utc', { ascending: false })
           .range(from, to)
-        
+
         data = response.data
         error = response.error
         count = response.count
-        
-        if (count) setTotalPages(Math.ceil(count / ROWS_PER_PAGE))
+
+        if (count) setTotalPages(Math.ceil(count / rowsPerPage))
 
       } else {
         const response = await supabase.rpc('get_public_preview')
@@ -99,18 +108,45 @@ function App() {
 
   async function handleLogout() {
     await supabase.auth.signOut()
+    dispatch(resetPagination())
   }
 
-  // Helper to open modal
+  const selectedTxn = useMemo(
+    () => transactions.find((txn) => (txn.id || txn.message_id) === selectedTransactionID) || null,
+    [transactions, selectedTransactionID]
+  )
+
   function openModal(txn) {
-    setSelectedTxn(txn)
-    document.getElementById('txn_modal').showModal()
+    dispatch(openTransactionModal(txn.id || txn.message_id))
   }
+
+  useEffect(() => {
+    const modal = modalRef.current
+    if (!modal) return
+
+    if (isTransactionModalOpen && selectedTxn) {
+      modal.showModal()
+    }
+    else if (modal.open) {
+      modal.close()
+    }
+  }, [isTransactionModalOpen, selectedTxn])
+
+  function handleCloseModal() {
+    dispatch(closeTransactionModal())
+  }
+
+  useEffect(() => {
+    if(selectedTxn){
+      console.log("Selected Transaction Values:", selectedTxn)
+    }
+  },[selectedTxn])
+
 
   return (
     // iOS THEME: Deep Blue-Black Background with "Spotlight" Gradient
     <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] text-slate-200 p-4 md:p-8 font-sans antialiased">
-      
+
       {/* Header */}
       <div className="max-w-6xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
@@ -186,7 +222,7 @@ function App() {
                           <span className="badge badge-outline border-slate-600 text-slate-400 badge-sm">{txn.narration_category}</span>
                         </td>
                         <td className="pr-6 text-right">
-                          <button 
+                          <button
                             className="btn btn-ghost btn-xs text-indigo-300 hover:text-indigo-100 hover:bg-indigo-500/20 p-4"
                             onClick={() => openModal(txn)}
                           >
@@ -203,9 +239,9 @@ function App() {
               {session && (
                 <div className="flex justify-center p-6 border-t border-white/5 bg-black/20">
                   <div className="join bg-slate-900/50 border border-white/10 rounded-lg">
-                    <button className="join-item btn btn-sm btn-ghost text-slate-300 hover:bg-white/10 p-4" disabled={page === 1} onClick={() => setPage(p => Math.max(1, p - 1))}>«</button>
+                    <button className="join-item btn btn-sm btn-ghost text-slate-300 hover:bg-white/10 p-4" disabled={page === 1} onClick={() => dispatch(setPage(Math.max(1, page - 1)))}>«</button>
                     <button className="join-item btn btn-sm btn-ghost text-slate-300 cursor-default hover:bg-transparent p-4">Page {page} of {totalPages}</button>
-                    <button className="join-item btn btn-sm btn-ghost text-slate-300 hover:bg-white/10 p-4" disabled={page === totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>»</button>
+                    <button className="join-item btn btn-sm btn-ghost text-slate-300 hover:bg-white/10 p-4" disabled={page === totalPages} onClick={() => dispatch(setPage(Math.min(totalPages, page + 1)))}>»</button>
                   </div>
                 </div>
               )}
@@ -222,7 +258,7 @@ function App() {
       </div>
 
       {/* --- INSPECTOR MODAL (Dark Theme) --- */}
-      <dialog id="txn_modal" className="modal modal-bottom sm:modal-middle backdrop-blur-sm">
+      <dialog ref={modalRef} id="txn_modal" className="modal modal-bottom sm:modal-middle backdrop-blur-sm" onClose={handleCloseModal}>
         <div className="modal-box w-11/12 max-w-4xl bg-slate-900 border border-slate-700 shadow-2xl text-slate-200">
           {selectedTxn && (
             <>
@@ -242,7 +278,7 @@ function App() {
 
               {/* Grid Layout */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
+
                 {/* Section 1: Extraction Source */}
                 <div className="card bg-slate-800/50 border border-slate-700/50">
                   <div className="card-body p-5">
@@ -284,9 +320,9 @@ function App() {
                       <div className="flex justify-between items-center">
                         <span className="text-slate-400">Confidence</span>
                         {selectedTxn.needs_llm_help ? (
-                           <span className="text-amber-400 text-xs font-bold">Low (LLM Used)</span>
+                          <span className="text-amber-400 text-xs font-bold">Low (LLM Used)</span>
                         ) : (
-                           <span className="text-emerald-400 text-xs font-bold">High (Regex)</span>
+                          <span className="text-emerald-400 text-xs font-bold">High (Regex)</span>
                         )}
                       </div>
                     </div>
@@ -304,9 +340,9 @@ function App() {
             </>
           )}
           <div className="modal-action">
-            <form method="dialog">
-              <button className="btn bg-slate-800 text-white border-slate-700 hover:bg-slate-700 p-4">Close</button>
-            </form>
+            <button type='button' className="btn bg-slate-800 text-white border-slate-700 hover:bg-slate-700 p-4" onClick={handleCloseModal} >
+              Close
+            </button>
           </div>
         </div>
       </dialog>
