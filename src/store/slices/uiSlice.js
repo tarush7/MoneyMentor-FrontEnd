@@ -14,7 +14,7 @@ const uiSlice = createSlice({
             state.selectedTransactionID = action.payload
             state.isTransactionModalOpen = true
         },
-        closeTransactionModal: (state, action) => {
+        closeTransactionModal: (state) => {
             state.selectedTransactionID = null
             state.isTransactionModalOpen = false
         },
