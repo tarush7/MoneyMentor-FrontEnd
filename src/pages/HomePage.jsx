@@ -74,7 +74,7 @@ export default function HomePage() {
         />
       </div>
 
-      <div className="sticky top-0 z-50 px-4 pt-4">
+      <div className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
         <div className="mx-auto max-w-5xl">
           <GlassSurface
             as="nav"
@@ -110,18 +110,16 @@ export default function HomePage() {
         </div>
       </div>
 
-      <section className="relative z-10 px-4 pb-10 pt-8 sm:px-6 lg:px-8">
+      <section className="relative z-10 px-4 pb-10 pt-28 sm:px-6 sm:pt-32 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="relative overflow-hidden rounded-[32px] ">
             <div className="relative grid gap-12 px-6 py-8 sm:px-10 sm:py-10 lg:grid-cols-[minmax(0,1.04fr)_minmax(360px,0.96fr)] lg:items-center lg:gap-8 lg:px-12 lg:py-12">
-              <div className="max-w-xl">
-
-                <h1 className="mt-6 max-w-3xl text-balance text-4xl font-semibold leading-[1.02] tracking-[-0.04em] text-white sm:text-5xl lg:text-[3.5rem]">
+              <div className="max-w-none sm:max-w-xl">
+                <h1 className="mt-6 max-w-[10.8ch] text-[2.65rem] font-semibold leading-[1.08] tracking-[-0.02em] text-white [text-wrap:balance] sm:max-w-2xl sm:text-5xl sm:leading-[1.03] sm:tracking-[-0.035em] lg:max-w-3xl lg:text-[3.5rem] lg:leading-[1.02] lg:tracking-[-0.04em]">
                   Turn raw transactions into clear financial insights.
                 </h1>
 
-
-                <p className="mt-5 max-w-xl text-pretty text-base leading-8 text-white/72 sm:text-lg">
+                <p className="mt-5 max-w-[31ch] text-[0.98rem] leading-7 text-white/78 sm:max-w-xl sm:text-lg sm:leading-8 sm:text-white/72">
                   Connect your transaction data and let FinSight AI automatically categorize
                   spending, detect patterns, and surface insights you can actually use.
                 </p>

@@ -76,7 +76,7 @@ const Stack = ({
 
   const handlePointerMove = (cardId, event) => {
     setDragState(prev => {
-      if (!prev || prev.id !== cardId) return prev;
+      if (!prev || prev.id !== cardId || prev.pointerId !== event.pointerId) return prev;
 
       return {
         ...prev,
@@ -87,16 +87,14 @@ const Stack = ({
   };
 
   const handlePointerEnd = (cardId, event) => {
-    let shouldSendToBack = false;
+    if (!dragState || dragState.id !== cardId || dragState.pointerId !== event.pointerId) {
+      return;
+    }
 
-    setDragState(prev => {
-      if (!prev || prev.id !== cardId) return prev;
+    const shouldSendToBack =
+      Math.abs(dragState.x) > sensitivity || Math.abs(dragState.y) > sensitivity;
 
-      shouldSendToBack =
-        Math.abs(prev.x) > sensitivity || Math.abs(prev.y) > sensitivity;
-
-      return null;
-    });
+    setDragState(null);
 
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
