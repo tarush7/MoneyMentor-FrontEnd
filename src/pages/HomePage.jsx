@@ -63,6 +63,7 @@ export default function HomePage() {
 
       <div className="absolute inset-0 z-0">
         <Prism
+          animationType="3drotate"
           bloom={0.8}
           glow={0.9}
           timeScale={0.35}
