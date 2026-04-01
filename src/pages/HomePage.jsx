@@ -92,7 +92,7 @@ export default function HomePage() {
                 FinSight AI
               </Link>
 
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <Link
                   to="/"
                   className="rounded-full px-3 py-2 text-sm font-medium text-white/72 transition hover:bg-white/8 hover:text-white"
@@ -105,7 +105,7 @@ export default function HomePage() {
                 >
                   Dashboard
                 </Link>
-              </div>
+              </div> */}
             </div>
           </GlassSurface>
         </div>
