@@ -43,14 +43,14 @@ export default function HomePage() {
     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
       <Link
         to="/dashboard"
-        className="inline-flex items-center justify-center rounded-2xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 shadow-[0_18px_42px_rgba(166,224,255,0.18)] transition hover:bg-cyan-100"
+        className="btn h-12 w-full rounded-2xl border border-white bg-white px-6 text-sm font-semibold text-slate-950 shadow-[0_18px_42px_rgba(166,224,255,0.18)] transition-all duration-150 hover:border-white hover:bg-white/92 hover:shadow-[0_20px_46px_rgba(166,224,255,0.22)] active:translate-y-px active:scale-[0.985] active:shadow-[0_10px_24px_rgba(166,224,255,0.14)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 sm:h-[3.25rem] sm:w-auto"
       >
         See FinSight AI in Action
       </Link>
 
       <a
         href="#how-it-works"
-        className="inline-flex items-center justify-center rounded-2xl border border-white/14 bg-white/6 px-5 py-3.5 text-sm font-semibold text-white/86 backdrop-blur-md transition hover:border-white/24 hover:bg-white/10 hover:text-white"
+        className="btn h-12 w-full rounded-2xl border border-white/80 bg-transparent px-6 text-sm font-semibold text-white shadow-none transition-all duration-150 hover:border-white hover:bg-white/10 hover:text-white active:translate-y-px active:scale-[0.985] active:border-white active:bg-white/14 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70 sm:h-[3.25rem] sm:w-auto"
       >
         How It Works
       </a>
@@ -59,7 +59,6 @@ export default function HomePage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#070411] text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(54,34,110,0.34),_transparent_34%),linear-gradient(180deg,_#090312_0%,_#070411_52%,_#05030d_100%)]" />
 
       <div className="absolute inset-0 z-0">
         <Prism
