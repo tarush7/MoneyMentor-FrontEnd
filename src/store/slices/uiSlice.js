@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit"
 
 
 const initialState = {
-    selectedTransactionID: null,
+    selectedTransactionId: null,
     isTransactionModalOpen: false,
 }
 
@@ -11,11 +11,11 @@ const uiSlice = createSlice({
     initialState,
     reducers: {
         openTransactionModal: (state, action) => {
-            state.selectedTransactionID = action.payload
+            state.selectedTransactionId = action.payload
             state.isTransactionModalOpen = true
         },
         closeTransactionModal: (state) => {
-            state.selectedTransactionID = null
+            state.selectedTransactionId = null
             state.isTransactionModalOpen = false
         },
     },
