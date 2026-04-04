@@ -4,6 +4,7 @@ import { openTransactionModal } from '../store/slices/uiSlice'
 import { useTransactionsQuery } from '../features/transactions/hooks/useTransactionsQuery'
 import TransactionsTable from '../features/transactions/components/TransactionsTable'
 import TransactionsPagination from '../features/transactions/components/TransactionsPagination'
+import TransactionManageModal from '../features/transactions/components/manage-modal/TransactionManageModal'
 import AppShell from '../components/layout/AppShell'
 import { useAuth } from '../providers/AuthProvider'
 
@@ -75,6 +76,8 @@ export default function TransactionsPage() {
               onNext={() => dispatch(setPage(page + 1))}
               onPageSizeChange={(size) => dispatch(setPageSize(size))}
             />
+
+            <TransactionManageModal />
           </>
         )}
       </div>
