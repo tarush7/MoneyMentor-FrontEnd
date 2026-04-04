@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
+import AuthNavControl from '../auth/AuthNavControl'
 import Dock from '../reactbits/Dock'
 import GlassSurface from '../reactbits/GlassSurface'
 import Prism from '../reactbits/Prism'
@@ -93,6 +94,8 @@ export default function AppShell({ children, contentClassName = '', showDock }) 
               <Link to="/" className="text-lg font-semibold tracking-tight text-white">
                 FinSight AI
               </Link>
+
+              <AuthNavControl />
             </div>
           </GlassSurface>
         </div>
