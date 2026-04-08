@@ -8,11 +8,9 @@ import {
   formatAmount,
   formatDateTimeToIST,
   getCategoryBadgeClass,
-  getDirectionBadgeClass,
 } from '../../utils/formatters'
 import TransactionDetailsSection from './TransactionDetailsSection'
 import TransactionTaggingSection from './TransactionTaggingSection'
-import TransactionRuleSection from './TransactionRuleSection'
 
 function CloseIcon() {
   return (
@@ -31,33 +29,20 @@ function CloseIcon() {
 
 function LoadingState() {
   return (
-    <div className="space-y-6">
-      <div className="rounded-[1.6rem] border border-white/[0.08] bg-white/[0.035] p-5">
+    <div className="space-y-5">
+      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
         <div className="skeleton h-4 w-28 rounded-full bg-white/[0.08]" />
         <div className="mt-3 skeleton h-8 w-56 rounded-2xl bg-white/[0.08]" />
-        <div className="mt-4 flex flex-wrap gap-3">
-          <div className="skeleton h-6 w-28 rounded-full bg-white/[0.08]" />
-          <div className="skeleton h-6 w-20 rounded-full bg-white/[0.08]" />
-          <div className="skeleton h-6 w-24 rounded-full bg-white/[0.08]" />
-        </div>
+        <div className="mt-3 skeleton h-4 w-44 rounded-full bg-white/[0.08]" />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.85fr)]">
-        <div className="rounded-[1.75rem] border border-white/[0.08] bg-white/[0.035] p-6">
-          <div className="skeleton h-5 w-44 rounded-full bg-white/[0.08]" />
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {Array.from({ length: 8 }).map((_, index) => (
-              <div
-                key={index}
-                className="skeleton h-24 rounded-[1.2rem] bg-white/[0.08]"
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div className="skeleton h-72 rounded-[1.75rem] bg-white/[0.08]" />
-          <div className="skeleton h-80 rounded-[1.75rem] bg-white/[0.08]" />
+      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+        <div className="skeleton h-5 w-36 rounded-full bg-white/[0.08]" />
+        <div className="mt-5 skeleton h-12 w-full rounded-2xl bg-white/[0.08]" />
+        <div className="mt-4 skeleton h-32 w-full rounded-2xl bg-white/[0.08]" />
+        <div className="mt-6 flex justify-end gap-3">
+          <div className="skeleton h-11 w-24 rounded-full bg-white/[0.08]" />
+          <div className="skeleton h-11 w-32 rounded-full bg-white/[0.08]" />
         </div>
       </div>
     </div>
@@ -108,15 +93,14 @@ function SummaryStrip({ transaction, isRefreshing }) {
     transaction.messageDatetimeUtc,
     transaction.parsedTxnDate
   )
+  const subtitle =
+    transaction.upiVpa || transaction.parsedChannel || transaction.upiReference || 'No extra identity'
 
   return (
-    <div className="rounded-[1.6rem] border border-white/[0.12] bg-[linear-gradient(180deg,rgba(17,22,43,0.78)_0%,rgba(8,11,24,0.82)_100%)] px-5 py-5 shadow-[0_24px_64px_rgba(0,0,0,0.22),inset_0_1px_0_rgba(255,255,255,0.05)]">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/[0.42]">
-              Transaction Manager
-            </div>
             {isRefreshing ? (
               <span className="loading loading-spinner loading-xs text-cyan-200" />
             ) : null}
@@ -126,19 +110,20 @@ function SummaryStrip({ transaction, isRefreshing }) {
             {transaction.merchantDisplay}
           </h2>
 
-          <div className="mt-3 text-sm text-white/[0.62]">
+          <div className="mt-1 text-sm text-white/55">{subtitle}</div>
+
+          <div className="mt-3 text-sm text-white/60">
             {transactionDateTime.date}
-            {transactionDateTime.time !== '—' ? ` · ${transactionDateTime.time}` : ''}
+            {transactionDateTime.time !== '—'
+              ? ` · ${transactionDateTime.time}`
+              : ''}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="rounded-full border border-white/[0.12] bg-white/[0.06] px-4 py-2 text-sm font-semibold text-white/[0.92]">
+        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+          <div className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white/90">
             {formatAmount(transaction.amount)}
           </div>
-          <span className={getDirectionBadgeClass(transaction.direction)}>
-            {transaction.direction || 'UNKNOWN'}
-          </span>
           <span className={getCategoryBadgeClass(currentCategory)}>
             {currentCategory || 'Unlabeled'}
           </span>
@@ -148,12 +133,78 @@ function SummaryStrip({ transaction, isRefreshing }) {
   )
 }
 
+function ManageStatusRow({ label, value, helper }) {
+  return (
+    <div className="rounded-[1.1rem] border border-white/[0.08] bg-white/[0.035] px-4 py-3">
+      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/[0.42]">
+        {label}
+      </div>
+      <div className="mt-2 text-sm font-medium text-white/[0.9]">
+        {value}
+      </div>
+      {helper ? (
+        <div className="mt-1 text-sm leading-6 text-white/[0.58]">{helper}</div>
+      ) : null}
+    </div>
+  )
+}
+
+function ManageShellSection({ currentLabel }) {
+  const currentCategory = currentLabel?.primaryCategory ?? 'Unlabeled'
+  const categoryHelper = currentLabel?.primaryCategory
+    ? currentLabel?.labelSource === 'manual'
+      ? 'This category was saved directly on the transaction.'
+      : 'This category came from an automated label source.'
+    : 'No category is saved on this transaction yet.'
+
+  return (
+    <section className="rounded-[1.75rem] border border-white/[0.12] bg-[linear-gradient(180deg,rgba(17,22,43,0.76)_0%,rgba(8,11,24,0.8)_100%)] p-6 shadow-[0_24px_64px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.05)]">
+      <div>
+        <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/[0.42]">
+          Management
+        </div>
+        <h3 className="mt-2 text-lg font-semibold text-white">
+          Transaction workspace
+        </h3>
+        <p className="mt-2 text-sm leading-6 text-white/[0.62]">
+          This entry point is reserved for the broader management flow. It is
+          read-only for now while those controls are being shaped.
+        </p>
+      </div>
+
+      <div className="mt-5 space-y-3">
+        <ManageStatusRow
+          label="Current category"
+          value={currentCategory}
+          helper={categoryHelper}
+        />
+        <ManageStatusRow
+          label="Automation"
+          value="Coming next"
+          helper="Future rule creation and similar-transaction handling will appear here."
+        />
+        <ManageStatusRow
+          label="Historical updates"
+          value="Not active yet"
+          helper="Backfilling older similar payments is not connected from this entry point yet."
+        />
+      </div>
+
+      <div className="mt-5 rounded-[1.1rem] border border-emerald-400/18 bg-emerald-400/10 px-4 py-3 text-sm leading-6 text-emerald-100/90">
+        Use the category pill in the table when you want to save a category on
+        a transaction right now.
+      </div>
+    </section>
+  )
+}
+
 export default function TransactionManageModal() {
   const dispatch = useDispatch()
   const { isAuthReady, isAuthenticated } = useAuth()
   const selectedTransactionId = useSelector(
     (state) => state.ui.selectedTransactionId
   )
+  const modalView = useSelector((state) => state.ui.transactionModalView)
   const isOpen = useSelector((state) => state.ui.isTransactionModalOpen)
 
   const {
@@ -186,6 +237,18 @@ export default function TransactionManageModal() {
 
   if (!isOpen) return null
 
+  const handleClose = () => {
+    dispatch(closeTransactionModal())
+  }
+  const isManageView = modalView === 'manage'
+  const headerTitle = isManageView
+    ? 'Manage transaction'
+    : 'Categorize transaction'
+  const headerDescription = isManageView
+    ? 'Review the transaction context here. Editing controls will expand from this entry point next.'
+    : 'Set the category for this payment and review how similar ones should be recognized.'
+  const modalMaxWidthClass = isManageView ? 'max-w-6xl' : 'max-w-2xl'
+
   const modal = (
     <div
       className="fixed inset-0 z-[80] flex items-center justify-center px-4 py-6 sm:px-6"
@@ -194,40 +257,33 @@ export default function TransactionManageModal() {
       aria-labelledby="transaction-manage-modal-heading"
     >
       <div
-        className="absolute inset-0 bg-[#05030d]/76 backdrop-blur-sm"
-        onClick={() => dispatch(closeTransactionModal())}
+        className="absolute inset-0 bg-slate-950/75 backdrop-blur-md"
+        onClick={handleClose}
         aria-hidden="true"
       />
 
-      <div className="relative z-10 flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-[2rem] border border-white/[0.12] bg-[linear-gradient(180deg,rgba(14,18,38,0.92)_0%,rgba(6,8,18,0.95)_100%)] shadow-[0_32px_90px_rgba(0,0,0,0.46),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl">
-        <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-6 py-5">
+      <div className={`relative z-10 flex max-h-[90vh] w-full ${modalMaxWidthClass} flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.14),transparent_25%),linear-gradient(180deg,#07101f_0%,#040915_100%)] shadow-[0_30px_90px_rgba(0,0,0,0.45)]`}>
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-6 py-5">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/[0.42]">
-              Review
+            <div className="text-2xl font-semibold uppercase  text-white">
+              {headerTitle}
             </div>
-            <h2
-              id="transaction-manage-modal-heading"
-              className="mt-2 text-xl font-semibold text-white"
-            >
-              Manage Transaction
-            </h2>
-            <p className="mt-2 text-sm text-white/[0.58]">
-              Review details now. Tagging and rule creation shells are in place
-              for the next pass.
+            <p className="mt-2 text-sm text-white/60 ">
+              {headerDescription}
             </p>
           </div>
 
           <button
             type="button"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.04] text-white/[0.7] transition-colors duration-150 hover:bg-white/[0.08] hover:text-white"
-            onClick={() => dispatch(closeTransactionModal())}
+            className="rounded-full border border-white/10 bg-white/5 p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
+            onClick={handleClose}
             aria-label="Close transaction dialog"
           >
             <CloseIcon />
           </button>
         </div>
 
-        <div className="overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+        <div className="max-h-[calc(90vh-92px)] overflow-y-auto px-6 py-6">
           {!selectedTransactionId ? (
             <EmptyState
               title="No transaction selected"
@@ -243,24 +299,25 @@ export default function TransactionManageModal() {
               description="The selected transaction could not be loaded from the current dataset."
             />
           ) : (
-            <div className="space-y-6">
-              <SummaryStrip transaction={transaction} isRefreshing={isFetching} />
-
-              <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.85fr)]">
-                <TransactionDetailsSection transaction={transaction} />
-
-                <div className="space-y-6">
-                  <TransactionTaggingSection
-                    transaction={transaction}
-                    currentLabel={transaction.currentLabel}
-                  />
-                  <TransactionRuleSection
-                    transaction={transaction}
-                    currentLabel={transaction.currentLabel}
-                  />
+            isManageView ? (
+              <div className="space-y-5">
+                <SummaryStrip transaction={transaction} isRefreshing={isFetching} />
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.85fr)]">
+                  <TransactionDetailsSection transaction={transaction} />
+                  <ManageShellSection currentLabel={transaction.currentLabel} />
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-5">
+                <SummaryStrip transaction={transaction} isRefreshing={isFetching} />
+                <TransactionTaggingSection
+                  key={`${transaction.id}:${transaction.currentLabel?.primaryCategory ?? ''}:${transaction.currentLabel?.customNote ?? ''}`}
+                  transaction={transaction}
+                  currentLabel={transaction.currentLabel}
+                  onClose={handleClose}
+                />
+              </div>
+            )
           )}
         </div>
       </div>

@@ -1,7 +1,6 @@
 import {
   formatAmount,
   formatDateTimeToIST,
-  getCategoryBadgeClass,
 } from '../utils/formatters'
 
 function AmountDirectionIcon({ direction }) {
@@ -67,13 +66,59 @@ function getAmountMeta(direction) {
   }
 }
 
+function CategoryTagIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+    >
+      <path
+        d="M10.75 4H5.9a1.9 1.9 0 0 0-1.9 1.9v4.85a1.9 1.9 0 0 0 .56 1.34l3.35 3.35a1.9 1.9 0 0 0 2.69 0l4.84-4.84a1.9 1.9 0 0 0 0-2.69L12.1 4.56A1.9 1.9 0 0 0 10.75 4Z"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M7.35 7.35h.01" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function CategoryPill({ category, onClick }) {
+  if (!category) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-sm font-medium text-amber-300 transition hover:border-amber-300/35 hover:bg-amber-300/15"
+      >
+        <CategoryTagIcon />
+        Add category
+      </button>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-medium text-white/90 transition hover:border-white/20 hover:bg-white/10"
+    >
+      <span className="h-2 w-2 rounded-full bg-emerald-300" />
+      {category}
+    </button>
+  )
+}
+
 export default function TransactionsTable({
   rows,
   isLoading,
   isError,
   error,
   pageSize,
-  onReview,
+  onCategorize,
+  onManage,
 }) {
   return (
     <div className="overflow-hidden rounded-[2rem] border border-white/[0.12] bg-[linear-gradient(180deg,rgba(13,16,34,0.72)_0%,rgba(6,8,18,0.74)_100%)] shadow-[0_28px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
@@ -119,7 +164,7 @@ export default function TransactionsTable({
                     </div>
                   </td>
                   <td className="border-b border-white/[0.08] px-6 py-4">
-                    <div className="skeleton h-6 w-24 rounded-full bg-white/[0.08]" />
+                    <div className="skeleton h-9 w-32 rounded-full bg-white/[0.08]" />
                   </td>
                   <td className="border-b border-white/[0.08] px-6 py-4">
                     <div className="skeleton h-8 w-20 rounded-2xl bg-white/[0.08]" />
@@ -181,15 +226,16 @@ export default function TransactionsTable({
                     </td>
 
                     <td className="border-b border-white/[0.08] px-6 py-4">
-                      <span className={getCategoryBadgeClass(row.category)}>
-                        {row.category || 'Unlabeled'}
-                      </span>
+                      <CategoryPill
+                        category={row.category}
+                        onClick={() => onCategorize(row.id)}
+                      />
                     </td>
 
                     <td className="border-b border-white/[0.08] px-6 py-4">
                       <button
                         className="btn btn-sm rounded-xl p-2 border-white/[0.15] bg-white/[0.06] text-white shadow-none transition-all duration-150 hover:border-white/[0.24] hover:bg-white/[0.1]"
-                        onClick={() => onReview(row.id)}
+                        onClick={() => onManage(row.id)}
                       >
                         Manage
                       </button>

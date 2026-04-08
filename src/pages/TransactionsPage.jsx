@@ -63,8 +63,21 @@ export default function TransactionsPage() {
               isError={isError}
               error={error}
               pageSize={pageSize}
-              onReview={(transactionId) =>
-                dispatch(openTransactionModal(transactionId))
+              onCategorize={(transactionId) =>
+                dispatch(
+                  openTransactionModal({
+                    transactionId,
+                    view: 'categorize',
+                  })
+                )
+              }
+              onManage={(transactionId) =>
+                dispatch(
+                  openTransactionModal({
+                    transactionId,
+                    view: 'manage',
+                  })
+                )
               }
             />
 
