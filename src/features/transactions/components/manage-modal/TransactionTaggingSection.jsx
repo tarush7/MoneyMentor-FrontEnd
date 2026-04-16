@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCreateTaggingRuleMutation } from '../../hooks/useCreateTaggingRuleMutation'
 import { useUpsertTransactionLabelMutation } from '../../hooks/useUpsertTransactionLabelMutation'
 
 const CATEGORY_OPTIONS = [
@@ -190,9 +191,10 @@ export default function TransactionTaggingSection({
     getDefaultRememberType(rememberChoices)
   )
   const saveLabelMutation = useUpsertTransactionLabelMutation(transaction.id)
+  const createRuleMutation = useCreateTaggingRuleMutation()
 
   const normalizedNote = note.trim()
-  const hasChanges = useMemo(
+  const hasLabelChanges = useMemo(
     () =>
       selectedCategory !== initialCategory ||
       normalizedNote !== initialNote.trim(),
@@ -205,6 +207,14 @@ export default function TransactionTaggingSection({
     rememberChoices.find((choice) => choice.id === selectedRememberType) ??
     rememberChoices[0] ??
     null
+  const canCreateRule =
+    rememberForSimilar &&
+    canRememberSimilar &&
+    Boolean(selectedRememberChoice) &&
+    !selectedRememberChoice?.disabled
+  const canSubmit = hasLabelChanges || canCreateRule
+  const isSubmitting =
+    saveLabelMutation.isPending || createRuleMutation.isPending
 
   useEffect(() => {
     if (!isCategoryMenuOpen) return undefined
@@ -230,21 +240,67 @@ export default function TransactionTaggingSection({
     }
   }, [isCategoryMenuOpen])
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
 
-    saveLabelMutation.mutate(
-      {
-        transactionId: transaction.id,
-        primaryCategory: selectedCategory,
-        customNote: normalizedNote,
-      },
-      {
+    const labelPayload = {
+      transactionId: transaction.id,
+      primaryCategory: selectedCategory,
+      customNote: normalizedNote,
+    }
+
+    if (!rememberForSimilar) {
+      console.groupCollapsed('[Tagging V1] save category')
+      console.info('labelPayload', labelPayload)
+      console.groupEnd()
+
+      saveLabelMutation.mutate(labelPayload, {
         onSuccess: () => {
           onClose()
         },
-      }
+      })
+      return
+    }
+
+    const rulePayload = {
+      transactionId: transaction.id,
+      primaryCategory: selectedCategory,
+      customNote: normalizedNote,
+      ruleType: selectedRememberType,
+      rulePreview: {
+        label: selectedRememberChoice?.previewLabel ?? null,
+        value: selectedRememberChoice?.previewValue ?? null,
+      },
+      sourceTransaction: {
+        merchantDisplay: transaction.merchantDisplay,
+        upiPayeeName: transaction.upiPayeeName ?? null,
+        upiVpa: transaction.upiVpa ?? null,
+        upiReference: transaction.upiReference ?? null,
+      },
+    }
+
+    console.groupCollapsed('[Tagging V2][Frontend] save and create rule')
+    console.info('labelPayload', labelPayload)
+    console.info('rulePayload', rulePayload)
+    console.info(
+      'status',
+      'Current transaction label will save for real. Rule creation is placeholder-only until RPC is connected.'
     )
+    console.groupEnd()
+
+    try {
+      await saveLabelMutation.mutateAsync(labelPayload)
+
+      const result = await createRuleMutation.mutateAsync(rulePayload)
+
+      console.groupCollapsed('[Tagging V2][Frontend] placeholder success')
+      console.info('result', result)
+      console.groupEnd()
+
+      onClose()
+    } catch (error) {
+      console.error('[Tagging V2][Frontend] flow failed', error)
+    }
   }
 
   const handleCategorySelect = (category) => {
@@ -341,11 +397,12 @@ export default function TransactionTaggingSection({
               Remember this
             </div>
             <h3 className="mt-2 text-lg font-semibold text-white">
-              Use this category for similar transactions in the future
+              Create one rule for similar transactions
             </h3>
             <p className="mt-2 text-sm leading-6 text-white/[0.62]">
-              Turn this on when you want similar payments to follow the same
-              category next time.
+              Turn this on when you want this category to become an automation
+              rule for matching transactions, including historical matches and
+              future ones.
             </p>
           </div>
 
@@ -433,38 +490,22 @@ export default function TransactionTaggingSection({
 
                 <div className="mt-3 text-sm text-white/[0.52]">
                   We will standardize casing and extra spaces automatically
-                  before matching.
+                  before matching, so one saved rule can be reused for both past
+                  and future transactions.
                 </div>
               </div>
             ) : null}
 
-            <label className="flex cursor-not-allowed items-start gap-3 rounded-[1.15rem] border border-white/[0.08] bg-white/[0.025] px-4 py-3 opacity-60">
-              <input
-                type="checkbox"
-                disabled
-                className="checkbox checkbox-sm mt-0.5 border-white/[0.2] bg-white/[0.02]"
-              />
-              <div>
-                <div className="text-sm font-medium text-white/[0.84]">
-                  Also update similar past transactions
-                </div>
-                <div className="mt-1 text-sm leading-6 text-white/[0.48]">
-                  This option will unlock once the remember flow is connected to
-                  rule creation.
-                </div>
-              </div>
-            </label>
-
             <div className="rounded-[1.15rem] border border-amber-300/15 bg-amber-300/10 px-4 py-3 text-sm leading-6 text-amber-100/85">
-              Saving below still updates only this transaction today. The
-              similar-transaction memory step is staged in the UI and will be
-              wired next.
+              UI direction is locked now: creating a rule will apply to matching
+              past transactions and future ones without asking separately about
+              history. The backend connection for that flow is the next step.
             </div>
           </div>
         ) : (
           <div className="mt-4 rounded-[1.1rem] border border-white/[0.08] bg-white/[0.035] px-4 py-3 text-sm leading-6 text-white/[0.64]">
             Turn this on to choose how the app should recognize similar
-            payments in the future.
+            payments and build a reusable rule from this transaction.
           </div>
         )}
       </div>
@@ -482,9 +523,11 @@ export default function TransactionTaggingSection({
         />
       </div>
 
-      {saveLabelMutation.isError ? (
+      {saveLabelMutation.isError || createRuleMutation.isError ? (
         <div className="mt-4 rounded-xl border border-rose-300/15 bg-rose-300/10 px-4 py-3 text-sm text-rose-100">
-          {saveLabelMutation.error.message}
+          {saveLabelMutation.error?.message ??
+            createRuleMutation.error?.message ??
+            'Something went wrong.'}
         </div>
       ) : null}
 
@@ -500,9 +543,15 @@ export default function TransactionTaggingSection({
         <button
           type="submit"
           className="rounded-full border border-emerald-400/25 bg-emerald-400/15 px-5 py-3 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20 disabled:border-white/10 disabled:bg-white/[0.05] disabled:text-white/35"
-          disabled={!hasChanges || saveLabelMutation.isPending}
+          disabled={!canSubmit || isSubmitting}
         >
-          {saveLabelMutation.isPending ? 'Saving...' : 'Save category'}
+          {isSubmitting
+            ? rememberForSimilar
+              ? 'Saving and creating rule...'
+              : 'Saving...'
+            : rememberForSimilar
+              ? 'Save and create rule'
+              : 'Save category'}
         </button>
       </div>
     </form>
