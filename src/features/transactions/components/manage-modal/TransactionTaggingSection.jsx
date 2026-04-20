@@ -175,6 +175,7 @@ function PreviewCard({ label, value }) {
 export default function TransactionTaggingSection({
   transaction,
   currentLabel,
+  isReadOnly = false,
   onClose,
 }) {
   const initialCategory = currentLabel?.primaryCategory ?? ''
@@ -191,7 +192,7 @@ export default function TransactionTaggingSection({
     getDefaultRememberType(rememberChoices)
   )
   const saveLabelMutation = useUpsertTransactionLabelMutation(transaction.id)
-  const createRuleMutation = useCreateTaggingRuleMutation()
+  const createRuleMutation = useCreateTaggingRuleMutation(transaction.id)
 
   const normalizedNote = note.trim()
   const hasLabelChanges = useMemo(
@@ -203,16 +204,17 @@ export default function TransactionTaggingSection({
   const selectedCategoryLabel = selectedCategory || CATEGORY_OPTIONS[0]
   const currentCategoryMeta = getCurrentCategoryMeta(currentLabel)
   const canRememberSimilar = rememberChoices.some((choice) => !choice.disabled)
+  const isRememberEnabled = !isReadOnly && rememberForSimilar
   const selectedRememberChoice =
     rememberChoices.find((choice) => choice.id === selectedRememberType) ??
     rememberChoices[0] ??
     null
   const canCreateRule =
-    rememberForSimilar &&
+    isRememberEnabled &&
     canRememberSimilar &&
     Boolean(selectedRememberChoice) &&
     !selectedRememberChoice?.disabled
-  const canSubmit = hasLabelChanges || canCreateRule
+  const canSubmit = !isReadOnly && (hasLabelChanges || canCreateRule)
   const isSubmitting =
     saveLabelMutation.isPending || createRuleMutation.isPending
 
@@ -243,13 +245,21 @@ export default function TransactionTaggingSection({
   const handleSubmit = async (event) => {
     event.preventDefault()
 
+    if (isReadOnly) {
+      console.info(
+        '[Tagging UI] Read-only demo mode blocked a save attempt for transaction',
+        transaction.id
+      )
+      return
+    }
+
     const labelPayload = {
       transactionId: transaction.id,
       primaryCategory: selectedCategory,
       customNote: normalizedNote,
     }
 
-    if (!rememberForSimilar) {
+    if (!isRememberEnabled) {
       console.groupCollapsed('[Tagging V1] save category')
       console.info('labelPayload', labelPayload)
       console.groupEnd()
@@ -265,8 +275,8 @@ export default function TransactionTaggingSection({
     const rulePayload = {
       transactionId: transaction.id,
       primaryCategory: selectedCategory,
-      customNote: normalizedNote,
       ruleType: selectedRememberType,
+      customNote: normalizedNote,
       rulePreview: {
         label: selectedRememberChoice?.previewLabel ?? null,
         value: selectedRememberChoice?.previewValue ?? null,
@@ -284,16 +294,21 @@ export default function TransactionTaggingSection({
     console.info('rulePayload', rulePayload)
     console.info(
       'status',
-      'Current transaction label will save for real. Rule creation is placeholder-only until RPC is connected.'
+      'The RPC will save the current transaction as manual, create the rule, and backfill historical matches in one DB call.'
     )
     console.groupEnd()
 
     try {
-      await saveLabelMutation.mutateAsync(labelPayload)
+      const result = await createRuleMutation.mutateAsync({
+        transactionId: rulePayload.transactionId,
+        primaryCategory: rulePayload.primaryCategory,
+        ruleType: rulePayload.ruleType,
+        customNote: rulePayload.customNote,
+      })
 
-      const result = await createRuleMutation.mutateAsync(rulePayload)
-
-      console.groupCollapsed('[Tagging V2][Frontend] placeholder success')
+      console.groupCollapsed('[Tagging V2][Frontend] rpc success')
+      console.info('rulePreview', rulePayload.rulePreview)
+      console.info('sourceTransaction', rulePayload.sourceTransaction)
       console.info('result', result)
       console.groupEnd()
 
@@ -304,6 +319,7 @@ export default function TransactionTaggingSection({
   }
 
   const handleCategorySelect = (category) => {
+    if (isReadOnly) return
     setSelectedCategory(category)
     setIsCategoryMenuOpen(false)
   }
@@ -329,6 +345,14 @@ export default function TransactionTaggingSection({
           </div>
         </div>
 
+        {isReadOnly ? (
+          <div className="mt-4 rounded-[1.1rem] border border-sky-300/15 bg-sky-300/10 px-4 py-3 text-sm leading-6 text-sky-100/90">
+            Demo mode is read-only for this account. You can inspect the
+            tagging workflow here, but only the admin account can save
+            categories or create rules.
+          </div>
+        ) : null}
+
         {selectedCategory !== initialCategory ? (
           <div className="mt-4 rounded-[1.1rem] border border-white/[0.08] bg-white/[0.035] px-4 py-3 text-sm text-white/[0.72]">
             This transaction will be saved as{' '}
@@ -346,19 +370,22 @@ export default function TransactionTaggingSection({
             type="button"
             className={cn(
               'flex w-full items-center justify-between rounded-2xl border bg-white/[0.04] px-4 py-3 text-left text-lg text-white outline-none transition',
-              isCategoryMenuOpen
+              isReadOnly
+                ? 'cursor-not-allowed border-white/10 text-white/55'
+                : isCategoryMenuOpen
                 ? 'border-emerald-400/45 shadow-[0_0_0_1px_rgba(52,211,153,0.12)]'
                 : 'border-white/10 hover:border-white/20'
             )}
             aria-haspopup="listbox"
             aria-expanded={isCategoryMenuOpen}
+            disabled={isReadOnly}
             onClick={() => setIsCategoryMenuOpen((current) => !current)}
           >
             <span>{selectedCategoryLabel}</span>
             <ChevronDownIcon isOpen={isCategoryMenuOpen} />
           </button>
 
-          {isCategoryMenuOpen ? (
+          {isCategoryMenuOpen && !isReadOnly ? (
             <div className="absolute left-0 right-0 top-[calc(100%+0.45rem)] z-30 overflow-hidden rounded-[1.1rem] border border-white/15 bg-[#111a30] shadow-[0_24px_80px_rgba(0,0,0,0.42)]">
               <ul role="listbox" className="max-h-72 overflow-y-auto py-1.5">
                 {CATEGORY_OPTIONS.map((option) => {
@@ -407,9 +434,9 @@ export default function TransactionTaggingSection({
           </div>
 
           <RememberSwitch
-            checked={rememberForSimilar}
+            checked={isRememberEnabled}
             onChange={setRememberForSimilar}
-            disabled={!canRememberSimilar}
+            disabled={isReadOnly || !canRememberSimilar}
           />
         </div>
 
@@ -418,7 +445,7 @@ export default function TransactionTaggingSection({
             We could not find a stable payment name or UPI ID on this
             transaction yet, so similar-transaction memory is unavailable here.
           </div>
-        ) : rememberForSimilar ? (
+        ) : isRememberEnabled ? (
           <div className="mt-5 space-y-4">
             <div>
               <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/[0.42]">
@@ -446,7 +473,7 @@ export default function TransactionTaggingSection({
                         name="remember-type"
                         value={choice.id}
                         checked={isSelected}
-                        disabled={choice.disabled}
+                        disabled={isReadOnly || choice.disabled}
                         onChange={() => setSelectedRememberType(choice.id)}
                         className="mt-1 h-5 w-5 border-white/20 bg-transparent text-emerald-300"
                       />
@@ -516,6 +543,7 @@ export default function TransactionTaggingSection({
         </label>
         <textarea
           value={note}
+          disabled={isReadOnly}
           onChange={(event) => setNote(event.target.value)}
           rows={4}
           placeholder="Example: monthly milk / office snack / one-time payment"
@@ -545,11 +573,13 @@ export default function TransactionTaggingSection({
           className="rounded-full border border-emerald-400/25 bg-emerald-400/15 px-5 py-3 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20 disabled:border-white/10 disabled:bg-white/[0.05] disabled:text-white/35"
           disabled={!canSubmit || isSubmitting}
         >
-          {isSubmitting
-            ? rememberForSimilar
+          {isReadOnly
+            ? 'Read-only demo'
+            : isSubmitting
+            ? isRememberEnabled
               ? 'Saving and creating rule...'
               : 'Saving...'
-            : rememberForSimilar
+            : isRememberEnabled
               ? 'Save and create rule'
               : 'Save category'}
         </button>

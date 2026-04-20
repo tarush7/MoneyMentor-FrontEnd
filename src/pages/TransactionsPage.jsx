@@ -7,11 +7,13 @@ import TransactionsPagination from '../features/transactions/components/Transact
 import TransactionManageModal from '../features/transactions/components/manage-modal/TransactionManageModal'
 import AppShell from '../components/layout/AppShell'
 import { useAuth } from '../providers/AuthProvider'
+import { isAdminWriterUser } from '../utils/adminAccess'
 
 export default function TransactionsPage() {
   const dispatch = useDispatch()
   const { page, pageSize } = useSelector((state) => state.filters)
-  const { isAuthReady, isAuthenticated } = useAuth()
+  const { isAuthReady, isAuthenticated, user } = useAuth()
+  const isReadOnlyDemo = isAuthenticated && !isAdminWriterUser(user)
 
   const { data, isLoading, isError, error, isFetching } =
     useTransactionsQuery({ page, pageSize, enabled: isAuthReady && isAuthenticated })
@@ -57,19 +59,31 @@ export default function TransactionsPage() {
           </div>
         ) : (
           <>
+            {isReadOnlyDemo ? (
+              <div className="mb-6 rounded-[1.5rem] border border-sky-300/15 bg-sky-300/10 px-5 py-4 text-sm leading-6 text-sky-100/90 shadow-[0_18px_50px_rgba(0,0,0,0.2)]">
+                Demo mode is active for this account. You can review the shared
+                transaction dataset, but only the admin account can change
+                categories or create tagging rules.
+              </div>
+            ) : null}
+
             <TransactionsTable
               rows={rows}
               isLoading={isLoading}
               isError={isError}
               error={error}
               pageSize={pageSize}
-              onCategorize={(transactionId) =>
-                dispatch(
-                  openTransactionModal({
-                    transactionId,
-                    view: 'categorize',
-                  })
-                )
+              isReadOnly={isReadOnlyDemo}
+              onCategorize={
+                isReadOnlyDemo
+                  ? undefined
+                  : (transactionId) =>
+                      dispatch(
+                        openTransactionModal({
+                          transactionId,
+                          view: 'categorize',
+                        })
+                      )
               }
               onManage={(transactionId) =>
                 dispatch(

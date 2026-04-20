@@ -85,13 +85,18 @@ function CategoryTagIcon() {
   )
 }
 
-function CategoryPill({ category, onClick }) {
+function CategoryPill({ category, onClick, disabled = false }) {
   if (!category) {
     return (
       <button
         type="button"
         onClick={onClick}
-        className="inline-flex items-center gap-2 rounded-full border border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-sm font-medium text-amber-300 transition hover:border-amber-300/35 hover:bg-amber-300/15"
+        disabled={disabled || !onClick}
+        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+          disabled || !onClick
+            ? 'cursor-not-allowed border-white/10 bg-white/[0.04] text-white/40'
+            : 'border-amber-300/20 bg-amber-300/10 text-amber-300 hover:border-amber-300/35 hover:bg-amber-300/15'
+        }`}
       >
         <CategoryTagIcon />
         Add category
@@ -103,7 +108,12 @@ function CategoryPill({ category, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-medium text-white/90 transition hover:border-white/20 hover:bg-white/10"
+      disabled={disabled || !onClick}
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+        disabled || !onClick
+          ? 'cursor-not-allowed border-white/10 bg-white/[0.04] text-white/45'
+          : 'border-white/10 bg-white/5 text-white/90 hover:border-white/20 hover:bg-white/10'
+      }`}
     >
       <span className="h-2 w-2 rounded-full bg-emerald-300" />
       {category}
@@ -117,6 +127,7 @@ export default function TransactionsTable({
   isError,
   error,
   pageSize,
+  isReadOnly = false,
   onCategorize,
   onManage,
 }) {
@@ -228,16 +239,21 @@ export default function TransactionsTable({
                     <td className="border-b border-white/[0.08] px-6 py-4">
                       <CategoryPill
                         category={row.category}
-                        onClick={() => onCategorize(row.id)}
+                        disabled={isReadOnly}
+                        onClick={
+                          onCategorize ? () => onCategorize(row.id) : undefined
+                        }
                       />
                     </td>
 
                     <td className="border-b border-white/[0.08] px-6 py-4">
                       <button
+                        type="button"
+                        disabled={!onManage}
                         className="btn btn-sm rounded-xl p-2 border-white/[0.15] bg-white/[0.06] text-white shadow-none transition-all duration-150 hover:border-white/[0.24] hover:bg-white/[0.1]"
-                        onClick={() => onManage(row.id)}
+                        onClick={() => onManage?.(row.id)}
                       >
-                        Manage
+                        {isReadOnly ? 'View' : 'Manage'}
                       </button>
                     </td>
                   </tr>

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { useAuth } from '../../../../providers/AuthProvider'
 import { closeTransactionModal } from '../../../../store/slices/uiSlice'
+import { isAdminWriterUser } from '../../../../utils/adminAccess'
 import { useTransactionDetailsQuery } from '../../hooks/useTransactionDetailsQuery'
 import {
   formatAmount,
@@ -200,7 +201,7 @@ function ManageShellSection({ currentLabel }) {
 
 export default function TransactionManageModal() {
   const dispatch = useDispatch()
-  const { isAuthReady, isAuthenticated } = useAuth()
+  const { isAuthReady, isAuthenticated, user } = useAuth()
   const selectedTransactionId = useSelector(
     (state) => state.ui.selectedTransactionId
   )
@@ -241,12 +242,15 @@ export default function TransactionManageModal() {
     dispatch(closeTransactionModal())
   }
   const isManageView = modalView === 'manage'
+  const isReadOnlyDemo = !isAdminWriterUser(user)
   const headerTitle = isManageView
     ? 'Manage transaction'
     : 'Categorize transaction'
   const headerDescription = isManageView
     ? 'Review the transaction context here. Editing controls will expand from this entry point next.'
-    : 'Set the category for this payment and review how similar ones should be recognized.'
+    : isReadOnlyDemo
+      ? 'Demo mode is read-only. You can review the category and rule setup here, but only the admin account can save changes.'
+      : 'Set the category for this payment and review how similar ones should be recognized.'
   const modalMaxWidthClass = isManageView ? 'max-w-6xl' : 'max-w-2xl'
 
   const modal = (
@@ -314,6 +318,7 @@ export default function TransactionManageModal() {
                   key={`${transaction.id}:${transaction.currentLabel?.primaryCategory ?? ''}:${transaction.currentLabel?.customNote ?? ''}`}
                   transaction={transaction}
                   currentLabel={transaction.currentLabel}
+                  isReadOnly={isReadOnlyDemo}
                   onClose={handleClose}
                 />
               </div>
