@@ -31,13 +31,13 @@ function CloseIcon() {
 function LoadingState() {
   return (
     <div className="space-y-5">
-      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4 sm:p-5">
         <div className="skeleton h-4 w-28 rounded-full bg-white/[0.08]" />
         <div className="mt-3 skeleton h-8 w-56 rounded-2xl bg-white/[0.08]" />
         <div className="mt-3 skeleton h-4 w-44 rounded-full bg-white/[0.08]" />
       </div>
 
-      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
+      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4 sm:p-5">
         <div className="skeleton h-5 w-36 rounded-full bg-white/[0.08]" />
         <div className="mt-5 skeleton h-12 w-full rounded-2xl bg-white/[0.08]" />
         <div className="mt-4 skeleton h-32 w-full rounded-2xl bg-white/[0.08]" />
@@ -52,7 +52,7 @@ function LoadingState() {
 
 function ErrorState({ message, onRetry }) {
   return (
-    <div className="rounded-[1.75rem] border border-rose-300/15 bg-rose-300/10 p-6">
+    <div className="rounded-[1.75rem] border border-rose-300/15 bg-rose-300/10 p-5 sm:p-6">
       <div className="text-xs font-semibold uppercase tracking-[0.22em] text-rose-100/75">
         Load Error
       </div>
@@ -78,7 +78,7 @@ function ErrorState({ message, onRetry }) {
 
 function EmptyState({ title, description }) {
   return (
-    <div className="rounded-[1.75rem] border border-white/[0.12] bg-white/[0.035] p-6">
+    <div className="rounded-[1.75rem] border border-white/[0.12] bg-white/[0.035] p-5 sm:p-6">
       <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/[0.42]">
         Unavailable
       </div>
@@ -100,18 +100,18 @@ function SummaryStrip({ transaction, isRefreshing }) {
   return (
     <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <div className="flex items-center gap-3">
             {isRefreshing ? (
               <span className="loading loading-spinner loading-xs text-cyan-200" />
             ) : null}
           </div>
 
-          <h2 className="mt-2 text-2xl font-semibold text-white">
+          <h2 className="mt-2 break-words text-xl font-semibold text-white sm:text-2xl">
             {transaction.merchantDisplay}
           </h2>
 
-          <div className="mt-1 text-sm text-white/55">{subtitle}</div>
+          <div className="mt-1 break-all text-sm text-white/55 sm:break-words">{subtitle}</div>
 
           <div className="mt-3 text-sm text-white/60">
             {transactionDateTime.date}
@@ -121,7 +121,7 @@ function SummaryStrip({ transaction, isRefreshing }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
           <div className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-white/90">
             {formatAmount(transaction.amount)}
           </div>
@@ -159,7 +159,7 @@ function ManageShellSection({ currentLabel }) {
     : 'No category is saved on this transaction yet.'
 
   return (
-    <section className="rounded-[1.75rem] border border-white/[0.12] bg-[linear-gradient(180deg,rgba(17,22,43,0.76)_0%,rgba(8,11,24,0.8)_100%)] p-6 shadow-[0_24px_64px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.05)]">
+    <section className="rounded-[1.75rem] border border-white/[0.12] bg-[linear-gradient(180deg,rgba(17,22,43,0.76)_0%,rgba(8,11,24,0.8)_100%)] p-4 shadow-[0_24px_64px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.05)] sm:p-6">
       <div>
         <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/[0.42]">
           Management
@@ -236,6 +236,17 @@ export default function TransactionManageModal() {
     }
   }, [dispatch, isOpen])
 
+  useEffect(() => {
+    if (!isOpen || typeof document === 'undefined') return undefined
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const handleClose = () => {
@@ -255,7 +266,7 @@ export default function TransactionManageModal() {
 
   const modal = (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center px-4 py-6 sm:px-6"
+      className="fixed inset-0 z-[80] flex items-end justify-center px-0 py-0 sm:items-center sm:px-4 sm:py-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="transaction-manage-modal-heading"
@@ -266,20 +277,23 @@ export default function TransactionManageModal() {
         aria-hidden="true"
       />
 
-      <div className={`relative z-10 flex max-h-[90vh] w-full ${modalMaxWidthClass} flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.14),transparent_25%),linear-gradient(180deg,#07101f_0%,#040915_100%)] shadow-[0_30px_90px_rgba(0,0,0,0.45)]`}>
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-6 py-5">
-          <div>
-            <div className="text-2xl font-semibold uppercase  text-white">
+      <div className={`relative z-10 flex h-[100dvh] w-full ${modalMaxWidthClass} flex-col overflow-hidden rounded-none border-0 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.14),transparent_25%),linear-gradient(180deg,#07101f_0%,#040915_100%)] shadow-[0_30px_90px_rgba(0,0,0,0.45)] sm:h-auto sm:max-h-[90vh] sm:rounded-[2rem] sm:border sm:border-white/10`}>
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5">
+          <div className="min-w-0">
+            <div
+              id="transaction-manage-modal-heading"
+              className="text-xl font-semibold uppercase text-white sm:text-2xl"
+            >
               {headerTitle}
             </div>
-            <p className="mt-2 text-sm text-white/60 ">
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-white/60">
               {headerDescription}
             </p>
           </div>
 
           <button
             type="button"
-            className="rounded-full border border-white/10 bg-white/5 p-2 text-white/70 transition hover:bg-white/10 hover:text-white"
+            className="shrink-0 rounded-full border border-white/10 bg-white/5 p-2.5 text-white/70 transition hover:bg-white/10 hover:text-white"
             onClick={handleClose}
             aria-label="Close transaction dialog"
           >
@@ -287,7 +301,7 @@ export default function TransactionManageModal() {
           </button>
         </div>
 
-        <div className="max-h-[calc(90vh-92px)] overflow-y-auto px-6 py-6">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] sm:px-6 sm:py-6">
           {!selectedTransactionId ? (
             <EmptyState
               title="No transaction selected"
@@ -306,7 +320,7 @@ export default function TransactionManageModal() {
             isManageView ? (
               <div className="space-y-5">
                 <SummaryStrip transaction={transaction} isRefreshing={isFetching} />
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.85fr)]">
+                <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.85fr)] lg:gap-6">
                   <TransactionDetailsSection transaction={transaction} />
                   <ManageShellSection currentLabel={transaction.currentLabel} />
                 </div>

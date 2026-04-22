@@ -32,7 +32,7 @@ export default function TransactionDetailsSection({ transaction }) {
     : '—'
 
   return (
-    <section className="rounded-[1.75rem] border border-white/[0.12] bg-[linear-gradient(180deg,rgba(17,22,43,0.76)_0%,rgba(8,11,24,0.8)_100%)] p-6 shadow-[0_24px_64px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.05)]">
+    <section className="rounded-[1.75rem] border border-white/[0.12] bg-[linear-gradient(180deg,rgba(17,22,43,0.76)_0%,rgba(8,11,24,0.8)_100%)] p-4 shadow-[0_24px_64px_rgba(0,0,0,0.24),inset_0_1px_0_rgba(255,255,255,0.05)] sm:p-6">
       <div className="mb-6">
         <div className="text-xs font-semibold uppercase tracking-[0.22em] text-white/[0.42]">
           Details

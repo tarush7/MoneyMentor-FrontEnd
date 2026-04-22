@@ -362,7 +362,37 @@ export default function TransactionTaggingSection({
       </div>
 
       <div className="mt-5 space-y-4">
-        <div className="relative" ref={categoryMenuRef}>
+        <div className="sm:hidden">
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.28em] text-white/35">
+            Category
+          </label>
+
+          <div className="relative">
+            <select
+              value={selectedCategoryLabel}
+              disabled={isReadOnly}
+              onChange={(event) => handleCategorySelect(event.target.value)}
+              className={cn(
+                'select h-14 min-h-0 w-full appearance-none rounded-2xl border bg-white/[0.04] px-4 pr-12 text-base text-white shadow-none outline-none transition',
+                isReadOnly
+                  ? 'cursor-not-allowed border-white/10 text-white/55'
+                  : 'border-white/10 hover:border-white/20 focus:border-emerald-400/45 focus:outline-none'
+              )}
+            >
+              {CATEGORY_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center">
+              <ChevronDownIcon isOpen={false} />
+            </div>
+          </div>
+        </div>
+
+        <div className="relative hidden sm:block" ref={categoryMenuRef}>
           <label className="mb-2 block text-xs font-semibold uppercase tracking-[0.28em] text-white/35">
             Category
           </label>
@@ -414,7 +444,6 @@ export default function TransactionTaggingSection({
             </div>
           ) : null}
         </div>
-
       </div>
 
       <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4">
@@ -559,30 +588,32 @@ export default function TransactionTaggingSection({
         </div>
       ) : null}
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium text-white/80 transition hover:bg-white/[0.06]"
-        >
-          Cancel
-        </button>
+      <div className="sticky bottom-0 z-10 -mx-4 mt-6 border-t border-white/10 bg-[#08111f]/95 px-4 pb-[calc(env(safe-area-inset-bottom)+0.4rem)] pt-4 backdrop-blur-md sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-0 sm:backdrop-blur-none">
+        <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex w-full items-center justify-center rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium text-white/80 transition hover:bg-white/[0.06] sm:w-auto"
+          >
+            Cancel
+          </button>
 
-        <button
-          type="submit"
-          className="rounded-full border border-emerald-400/25 bg-emerald-400/15 px-5 py-3 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20 disabled:border-white/10 disabled:bg-white/[0.05] disabled:text-white/35"
-          disabled={!canSubmit || isSubmitting}
-        >
-          {isReadOnly
-            ? 'Read-only demo'
-            : isSubmitting
-            ? isRememberEnabled
-              ? 'Saving and creating rule...'
-              : 'Saving...'
-            : isRememberEnabled
-              ? 'Save and create rule'
-              : 'Save category'}
-        </button>
+          <button
+            type="submit"
+            className="inline-flex w-full items-center justify-center rounded-full border border-emerald-400/25 bg-emerald-400/15 px-5 py-3 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-400/20 disabled:border-white/10 disabled:bg-white/[0.05] disabled:text-white/35 sm:w-auto"
+            disabled={!canSubmit || isSubmitting}
+          >
+            {isReadOnly
+              ? 'Read-only demo'
+              : isSubmitting
+              ? isRememberEnabled
+                ? 'Saving and creating rule...'
+                : 'Saving...'
+              : isRememberEnabled
+                ? 'Save and create rule'
+                : 'Save category'}
+          </button>
+        </div>
       </div>
     </form>
   )
