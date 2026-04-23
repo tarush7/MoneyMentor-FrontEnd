@@ -1,23 +1,34 @@
 import { formatAmount, formatDateTimeToIST } from '../utils/formatters'
 
-function AmountDirectionIcon({ direction }) {
+function AmountDirectionIcon({ direction, compact = false }) {
   const isDebit = direction === 'DEBIT'
   const isCredit = direction === 'CREDIT'
 
   const toneClass = isDebit
-    ? 'border-rose-400/25 bg-rose-400/10 text-rose-300'
+    ? compact
+      ? 'border-rose-300/20 bg-rose-400/[0.1] text-rose-200'
+      : 'border-rose-400/25 bg-rose-400/10 text-rose-300'
     : isCredit
-      ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300'
-      : 'border-white/[0.12] bg-white/[0.04] text-white/[0.72]'
+      ? compact
+        ? 'border-emerald-300/20 bg-emerald-400/[0.1] text-emerald-200'
+        : 'border-emerald-400/25 bg-emerald-400/10 text-emerald-300'
+      : compact
+        ? 'border-white/[0.1] bg-white/[0.045] text-white/[0.68]'
+        : 'border-white/[0.12] bg-white/[0.04] text-white/[0.72]'
+
+  const sizeClass = compact
+    ? 'h-7 w-7 rounded-full'
+    : 'h-10 w-10 rounded-2xl'
+  const iconSizeClass = compact ? 'h-3.5 w-3.5' : 'h-5 w-5'
 
   return (
     <div
-      className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${toneClass}`}
+      className={`flex items-center justify-center border ${sizeClass} ${toneClass}`}
       aria-hidden="true"
     >
       <svg
         viewBox="0 0 20 20"
-        className="h-5 w-5"
+        className={iconSizeClass}
         fill="none"
         stroke="currentColor"
         strokeWidth="1.8"
@@ -82,21 +93,39 @@ function CategoryTagIcon() {
   )
 }
 
-function CategoryPill({ category, onClick, disabled = false, className = '' }) {
+function CategoryPill({
+  category,
+  onClick,
+  disabled = false,
+  className = '',
+  compact = false,
+}) {
+  const isInteractive = Boolean(onClick) && !disabled
+
   if (!category) {
     return (
       <button
         type="button"
         onClick={onClick}
-        disabled={disabled || !onClick}
-        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-          disabled || !onClick
-            ? 'cursor-not-allowed border-white/10 bg-white/[0.04] text-white/40'
-            : 'border-amber-300/20 bg-amber-300/10 text-amber-300 hover:border-amber-300/35 hover:bg-amber-300/15'
+        disabled={!isInteractive}
+        className={`inline-flex max-w-full items-center gap-2 border font-medium transition ${
+          compact
+            ? `h-9 rounded-full px-3.5 text-[13px] leading-none ${
+                isInteractive
+                  ? 'border-amber-300/25 bg-amber-400/[0.08] text-amber-300 hover:border-amber-300/35 hover:bg-amber-400/[0.12]'
+                  : 'border-amber-300/15 bg-amber-400/[0.05] text-amber-300/70'
+              }`
+            : disabled || !onClick
+              ? 'cursor-not-allowed rounded-full border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm text-white/40'
+              : 'rounded-full border-amber-300/20 bg-amber-300/10 px-3 py-1.5 text-sm text-amber-300 hover:border-amber-300/35 hover:bg-amber-300/15'
         } ${className}`}
       >
-        <CategoryTagIcon />
-        Add category
+        {compact ? (
+          <span className="h-2 w-2 shrink-0 rounded-full bg-current opacity-90" />
+        ) : (
+          <CategoryTagIcon />
+        )}
+        <span className="truncate">Add category</span>
       </button>
     )
   }
@@ -105,25 +134,45 @@ function CategoryPill({ category, onClick, disabled = false, className = '' }) {
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled || !onClick}
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition ${
-        disabled || !onClick
-          ? 'cursor-not-allowed border-white/10 bg-white/[0.04] text-white/45'
-          : 'border-white/10 bg-white/5 text-white/90 hover:border-white/20 hover:bg-white/10'
+      disabled={!isInteractive}
+      className={`inline-flex max-w-full items-center gap-2 border font-medium transition ${
+        compact
+          ? `h-9 rounded-full px-3.5 text-[13px] leading-none ${
+              isInteractive
+                ? 'border-emerald-300/20 bg-emerald-400/[0.08] text-emerald-200 hover:border-emerald-300/30 hover:bg-emerald-400/[0.12]'
+                : 'border-emerald-300/15 bg-emerald-400/[0.05] text-emerald-200/75'
+            }`
+          : disabled || !onClick
+            ? 'cursor-not-allowed rounded-full border-white/10 bg-white/[0.04] px-3 py-1.5 text-sm text-white/45'
+            : 'rounded-full border-white/10 bg-white/5 px-3 py-1.5 text-sm text-white/90 hover:border-white/20 hover:bg-white/10'
       } ${className}`}
     >
-      <span className="h-2 w-2 rounded-full bg-emerald-300" />
-      {category}
+      <span
+        className={`shrink-0 rounded-full ${
+          compact ? 'h-2 w-2 bg-current opacity-90' : 'h-2 w-2 bg-emerald-300'
+        }`}
+      />
+      <span className="truncate">{category}</span>
     </button>
   )
 }
 
-function ActionButton({ isReadOnly, onManage, rowId, className = '' }) {
+function ActionButton({
+  isReadOnly,
+  onManage,
+  rowId,
+  className = '',
+  compact = false,
+}) {
   return (
     <button
       type="button"
       disabled={!onManage}
-      className={`btn btn-sm rounded-xl border-white/[0.15] bg-white/[0.06] text-white shadow-none transition-all duration-150 hover:border-white/[0.24] hover:bg-white/[0.1] ${className}`}
+      className={`transition-all duration-150 ${
+        compact
+          ? 'inline-flex h-9 min-h-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.025] px-4 text-[13px] font-medium text-white/[0.72] hover:border-white/[0.14] hover:bg-white/[0.045] hover:text-white/[0.9]'
+          : 'btn btn-sm rounded-xl border-white/[0.15] bg-white/[0.06] text-white shadow-none hover:border-white/[0.24] hover:bg-white/[0.1]'
+      } ${className}`}
       onClick={() => onManage?.(rowId)}
     >
       {isReadOnly ? 'View' : 'Manage'}
@@ -148,27 +197,27 @@ function MobileLoadingCards({ count }) {
   return Array.from({ length: count }).map((_, idx) => (
     <div
       key={idx}
-      className="rounded-[1.5rem] border border-white/[0.08] bg-white/[0.025] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+      className="rounded-[1.4rem] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(20,24,36,0.96)_0%,rgba(14,18,29,0.98)_100%)] px-4 py-4 shadow-[0_16px_36px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.03)]"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="skeleton h-5 w-36 rounded-full bg-white/[0.08]" />
-          <div className="mt-2 skeleton h-4 w-28 rounded-full bg-white/[0.08]" />
+          <div className="skeleton h-5 w-40 rounded-full bg-white/[0.08]" />
+          <div className="mt-2 skeleton h-3.5 w-32 rounded-full bg-white/[0.08]" />
         </div>
-        <div className="skeleton h-10 w-24 rounded-2xl bg-white/[0.08]" />
-      </div>
-
-      <div className="mt-4 flex items-center gap-3">
-        <div className="skeleton h-10 w-10 rounded-2xl bg-white/[0.08]" />
-        <div className="space-y-2">
-          <div className="skeleton h-5 w-24 rounded-full bg-white/[0.08]" />
-          <div className="skeleton h-3 w-20 rounded-full bg-white/[0.08]" />
+        <div className="shrink-0 space-y-2 text-right">
+          <div className="flex items-center justify-end gap-2">
+            <div className="skeleton h-7 w-7 rounded-full bg-white/[0.08]" />
+            <div className="skeleton h-6 w-20 rounded-full bg-white/[0.08]" />
+          </div>
+          <div className="ml-auto skeleton h-3 w-16 rounded-full bg-white/[0.08]" />
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3">
-        <div className="skeleton h-10 w-full rounded-2xl bg-white/[0.08]" />
-        <div className="skeleton h-10 w-full rounded-2xl bg-white/[0.08]" />
+      <div className="mt-5 flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="skeleton h-9 w-28 rounded-full bg-white/[0.08]" />
+        </div>
+        <div className="skeleton h-9 w-28 rounded-full bg-white/[0.08]" />
       </div>
     </div>
   ))
@@ -182,58 +231,48 @@ function MobileTransactionCard({
 }) {
   const ist = formatDateTimeToIST(row.messageDatetimeUtc, row.parsedTxnDate)
   const amountMeta = getAmountMeta(row.direction)
+  const dateTimeLabel =
+    ist.time && ist.time !== '—' ? `${ist.date} • ${ist.time}` : ist.date
 
   return (
-    <article className="rounded-[1.5rem] border border-white/[0.08] bg-white/[0.025] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="break-words text-base font-semibold text-white/[0.94]">
+    <article className="rounded-[1.4rem] border border-white/[0.08] bg-[linear-gradient(180deg,rgba(20,24,36,0.96)_0%,rgba(14,18,29,0.98)_100%)] px-4 py-4 shadow-[0_16px_36px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.03)]">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h3 className="break-words text-[1.05rem] font-semibold leading-[1.35] text-white/[0.95]">
             {row.merchantDisplay}
           </h3>
-          {row.upiPayeeName && row.upiVpa ? (
-            <p className="mt-1 break-all text-sm text-white/[0.5]">{row.upiVpa}</p>
-          ) : null}
+          <p className="mt-1.5 text-[13px] text-white/[0.46]">{dateTimeLabel}</p>
         </div>
 
-        <div className="shrink-0 rounded-2xl border border-white/[0.08] bg-white/[0.035] px-3 py-2 text-right">
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-white/[0.4]">
-            Date
-          </div>
-          <div className="mt-1 text-sm font-medium text-white/[0.88]">{ist.date}</div>
-          <div className="text-xs text-white/[0.5]">{ist.time}</div>
-        </div>
-      </div>
-
-      <div className="mt-4 rounded-[1.25rem] border border-white/[0.08] bg-white/[0.03] px-4 py-3">
-        <div className="flex items-center gap-3">
-          <AmountDirectionIcon direction={row.direction} />
-
-          <div className="min-w-0">
-            <div className={`text-lg font-semibold ${amountMeta.amountClass}`}>
+        <div className="shrink-0 pt-0.5 text-right">
+          <div className="flex items-center justify-end gap-2">
+            <AmountDirectionIcon direction={row.direction} compact />
+            <div className={`text-xl font-semibold tracking-tight ${amountMeta.amountClass}`}>
               {formatAmount(row.amount)}
             </div>
-            <div className="text-xs uppercase tracking-[0.22em] text-white/40">
-              {amountMeta.label}
-            </div>
+          </div>
+          <div className="mt-1 text-[10px] font-medium uppercase tracking-[0.34em] text-white/[0.34]">
+            {amountMeta.label}
           </div>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-col gap-3">
-        <CategoryPill
-          category={row.category}
-          disabled={isReadOnly}
-          className="w-full justify-center"
-          onClick={
-            onCategorize ? () => onCategorize(row.id) : undefined
-          }
-        />
-
+      <div className="mt-5 flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <CategoryPill
+            category={row.category}
+            disabled={isReadOnly}
+            compact
+            className="max-w-full"
+            onClick={onCategorize ? () => onCategorize(row.id) : undefined}
+          />
+        </div>
         <ActionButton
           isReadOnly={isReadOnly}
           onManage={onManage}
           rowId={row.id}
-          className="h-11 w-full min-h-0 px-4 text-sm"
+          compact
+          className="min-w-[7.75rem] px-5"
         />
       </div>
     </article>
@@ -316,8 +355,8 @@ export default function TransactionsTable({
   onManage,
 }) {
   return (
-    <div className="overflow-hidden rounded-[2rem] border border-white/[0.12] bg-[linear-gradient(180deg,rgba(13,16,34,0.72)_0%,rgba(6,8,18,0.74)_100%)] shadow-[0_28px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-sm">
-      <div className="space-y-3 p-3 md:hidden">
+    <div className="md:overflow-hidden md:rounded-[2rem] md:border md:border-white/[0.12] md:bg-[linear-gradient(180deg,rgba(13,16,34,0.72)_0%,rgba(6,8,18,0.74)_100%)] md:shadow-[0_28px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.08)] md:backdrop-blur-sm">
+      <div className="space-y-3 md:hidden">
         {isLoading ? (
           <MobileLoadingCards count={Math.min(pageSize, 6)} />
         ) : isError ? (
