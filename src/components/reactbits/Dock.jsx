@@ -19,6 +19,16 @@ function setDockItemTransform(node, scale, lift) {
   node.style.transform = `translate3d(0, ${-lift}px, 0) scale(${scale})`
 }
 
+const dockPanelStyle = {
+  background: 'rgba(255, 255, 255, 0.1)',
+  backdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
+  WebkitBackdropFilter: 'blur(12px) saturate(1.8) brightness(1.2)',
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  boxShadow: `inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+              inset 0 -1px 0 0 rgba(255, 255, 255, 0.1),
+              0 30px 80px rgba(0, 0, 0, 0.45)`,
+}
+
 function DockItem({ item, pathname, baseItemSize, magnification, registerItemRef }) {
   const isActive = matchesRoute(pathname, item.to)
 
@@ -145,7 +155,8 @@ export default function Dock({
       <div className="mx-auto flex w-full max-w-fit justify-center">
         <div
           ref={panelRef}
-          className="pointer-events-auto flex items-end gap-3 rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(9,10,24,0.86)_0%,rgba(4,6,16,0.9)_100%)] px-4 pb-3 pt-4 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+          className="pointer-events-auto flex items-end gap-3 rounded-[2rem] px-4 pb-3 pt-4"
+          style={dockPanelStyle}
           onMouseMove={(event) => {
             pointerXRef.current = event.clientX
             pointerInsideRef.current = true
