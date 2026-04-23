@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { formatAmount, formatDateTimeToIST } from '../utils/formatters'
 
 function AmountDirectionIcon({ direction, compact = false }) {
@@ -351,9 +352,48 @@ export default function TransactionsTable({
   error,
   pageSize,
   isReadOnly = false,
+  enableInfiniteScroll = false,
+  hasMore = false,
+  isFetchingMore = false,
+  onLoadMore,
   onCategorize,
   onManage,
 }) {
+  const loadMoreRef = useRef(null)
+
+  useEffect(() => {
+    if (
+      !enableInfiniteScroll ||
+      !hasMore ||
+      isFetchingMore ||
+      !onLoadMore ||
+      typeof IntersectionObserver === 'undefined'
+    ) {
+      return undefined
+    }
+
+    const loadMoreNode = loadMoreRef.current
+
+    if (!loadMoreNode) return undefined
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries
+
+        if (entry?.isIntersecting) {
+          onLoadMore()
+        }
+      },
+      {
+        rootMargin: '240px 0px',
+      }
+    )
+
+    observer.observe(loadMoreNode)
+
+    return () => observer.disconnect()
+  }, [enableInfiniteScroll, hasMore, isFetchingMore, onLoadMore])
+
   return (
     <div className="md:overflow-hidden md:rounded-[2rem] md:border md:border-white/[0.12] md:bg-[linear-gradient(180deg,rgba(13,16,34,0.72)_0%,rgba(6,8,18,0.74)_100%)] md:shadow-[0_28px_70px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.08)] md:backdrop-blur-sm">
       <div className="space-y-3 md:hidden">
@@ -366,15 +406,36 @@ export default function TransactionsTable({
         ) : rows.length === 0 ? (
           <MobileStatePanel>No transactions found.</MobileStatePanel>
         ) : (
-          rows.map((row) => (
-            <MobileTransactionCard
-              key={row.id}
-              row={row}
-              isReadOnly={isReadOnly}
-              onCategorize={onCategorize}
-              onManage={onManage}
-            />
-          ))
+          <>
+            {rows.map((row) => (
+              <MobileTransactionCard
+                key={row.id}
+                row={row}
+                isReadOnly={isReadOnly}
+                onCategorize={onCategorize}
+                onManage={onManage}
+              />
+            ))}
+
+            {enableInfiniteScroll ? (
+              <div
+                ref={loadMoreRef}
+                className="flex min-h-[3rem] items-center justify-center px-3 py-2"
+              >
+                {isFetchingMore ? (
+                  <span className="loading loading-spinner loading-sm text-cyan-200" />
+                ) : hasMore ? (
+                  <span className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/[0.34]">
+                    Loading more as you scroll
+                  </span>
+                ) : (
+                  <span className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/[0.28]">
+                    End of transactions
+                  </span>
+                )}
+              </div>
+            ) : null}
+          </>
         )}
       </div>
 

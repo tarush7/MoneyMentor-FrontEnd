@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setPage, setPageSize } from '../store/slices/filtersSlice'
 import { openTransactionModal } from '../store/slices/uiSlice'
 import { useTransactionsQuery } from '../features/transactions/hooks/useTransactionsQuery'
+import { useInfiniteTransactionsQuery } from '../features/transactions/hooks/useInfiniteTransactionsQuery'
 import TransactionsTable from '../features/transactions/components/TransactionsTable'
 import TransactionsPagination from '../features/transactions/components/TransactionsPagination'
 import TransactionManageModal from '../features/transactions/components/manage-modal/TransactionManageModal'
@@ -9,17 +11,73 @@ import AppShell from '../components/layout/AppShell'
 import { useAuth } from '../providers/AuthProvider'
 import { isAdminWriterUser } from '../utils/adminAccess'
 
+const MOBILE_MEDIA_QUERY = '(max-width: 767px)'
+
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(query).matches : false
+  )
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined
+
+    const mediaQuery = window.matchMedia(query)
+    const updateMatch = () => setMatches(mediaQuery.matches)
+
+    updateMatch()
+    mediaQuery.addEventListener('change', updateMatch)
+
+    return () => mediaQuery.removeEventListener('change', updateMatch)
+  }, [query])
+
+  return matches
+}
+
 export default function TransactionsPage() {
   const dispatch = useDispatch()
   const { page, pageSize } = useSelector((state) => state.filters)
   const { isAuthReady, isAuthenticated, user } = useAuth()
   const isReadOnlyDemo = isAuthenticated && !isAdminWriterUser(user)
+  const isMobileViewport = useMediaQuery(MOBILE_MEDIA_QUERY)
+  const queryEnabled = isAuthReady && isAuthenticated
 
-  const { data, isLoading, isError, error, isFetching } =
-    useTransactionsQuery({ page, pageSize, enabled: isAuthReady && isAuthenticated })
+  const pagedQuery = useTransactionsQuery({
+    page,
+    pageSize,
+    enabled: queryEnabled && !isMobileViewport,
+  })
+  const infiniteQuery = useInfiniteTransactionsQuery({
+    pageSize,
+    enabled: queryEnabled && isMobileViewport,
+  })
 
-  const rows = data?.rows ?? []
-  const totalCount = data?.totalCount ?? 0
+  const rows = isMobileViewport
+    ? (infiniteQuery.data?.pages ?? []).flatMap((resultPage) => resultPage.rows)
+    : pagedQuery.data?.rows ?? []
+  const totalCount = isMobileViewport
+    ? infiniteQuery.data?.pages?.[0]?.totalCount ?? 0
+    : pagedQuery.data?.totalCount ?? 0
+  const isLoading = isMobileViewport ? infiniteQuery.isPending : pagedQuery.isLoading
+  const isError =
+    rows.length === 0 && (isMobileViewport ? infiniteQuery.isError : pagedQuery.isError)
+  const error = isMobileViewport ? infiniteQuery.error : pagedQuery.error
+  const isFetching = isMobileViewport ? infiniteQuery.isFetching : pagedQuery.isFetching
+  const hasMoreMobileRows = isMobileViewport ? Boolean(infiniteQuery.hasNextPage) : false
+  const isFetchingMoreMobileRows = isMobileViewport
+    ? infiniteQuery.isFetchingNextPage
+    : false
+
+  const handleLoadMoreMobileRows = () => {
+    if (
+      !isMobileViewport ||
+      !infiniteQuery.hasNextPage ||
+      infiniteQuery.isFetchingNextPage
+    ) {
+      return
+    }
+
+    infiniteQuery.fetchNextPage()
+  }
 
   return (
     <AppShell>
@@ -74,6 +132,10 @@ export default function TransactionsPage() {
               error={error}
               pageSize={pageSize}
               isReadOnly={isReadOnlyDemo}
+              enableInfiniteScroll={isMobileViewport}
+              hasMore={hasMoreMobileRows}
+              isFetchingMore={isFetchingMoreMobileRows}
+              onLoadMore={handleLoadMoreMobileRows}
               onCategorize={
                 isReadOnlyDemo
                   ? undefined
@@ -95,14 +157,16 @@ export default function TransactionsPage() {
               }
             />
 
-            <TransactionsPagination
-              page={page}
-              pageSize={pageSize}
-              totalCount={totalCount}
-              onPrev={() => dispatch(setPage(page - 1))}
-              onNext={() => dispatch(setPage(page + 1))}
-              onPageSizeChange={(size) => dispatch(setPageSize(size))}
-            />
+            {!isMobileViewport ? (
+              <TransactionsPagination
+                page={page}
+                pageSize={pageSize}
+                totalCount={totalCount}
+                onPrev={() => dispatch(setPage(page - 1))}
+                onNext={() => dispatch(setPage(page + 1))}
+                onPageSizeChange={(size) => dispatch(setPageSize(size))}
+              />
+            ) : null}
 
             <TransactionManageModal />
           </>
