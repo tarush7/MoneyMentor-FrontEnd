@@ -7,16 +7,29 @@ function normalizeLabel(labelRelation) {
 
 function mapTransactionDetails(row) {
   const label = normalizeLabel(row.transaction_labels)
+  const merchantName = row.merchant_name
+  const counterpartyName = row.counterparty_name
+  const upiPayeeName = row.upi_payee_name
+  const upiVpa = row.upi_vpa
+  const upiReference = row.upi_reference
 
   return {
     id: row.id,
     messageDatetimeUtc: row.message_datetime_utc,
     parsedTxnDate: row.parsed_txn_date,
     merchantDisplay:
-      row.upi_payee_name || row.upi_vpa || row.upi_reference || 'Unknown',
-    upiPayeeName: row.upi_payee_name,
-    upiVpa: row.upi_vpa,
-    upiReference: row.upi_reference,
+      merchantName ||
+      counterpartyName ||
+      upiPayeeName ||
+      upiVpa ||
+      upiReference ||
+      'Unknown',
+    merchantName,
+    counterpartyName,
+    counterpartyType: row.counterparty_type,
+    upiPayeeName,
+    upiVpa,
+    upiReference,
     accountLast4: row.account_last4,
     parsedChannel: row.parsed_channel,
     bankName: row.bank_name,
@@ -46,6 +59,9 @@ export async function getTransactionDetails(transactionId) {
         id,
         message_datetime_utc,
         parsed_txn_date,
+        merchant_name,
+        counterparty_name,
+        counterparty_type,
         upi_payee_name,
         upi_vpa,
         upi_reference,
