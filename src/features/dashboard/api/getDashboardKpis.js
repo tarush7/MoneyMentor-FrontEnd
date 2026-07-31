@@ -2,21 +2,20 @@ import { supabase } from '../../../supabase'
 import { getCurrentMonthWindow } from '../utils/getCurrentMonthWindow'
 
 function sumAmounts(rows) {
-  return rows.reduce((total, row) => total + Number(row.parsed_amount ?? 0), 0)
+  return rows.reduce(
+    (total, row) => total + Number(row.expense_amount ?? 0),
+    0
+  )
 }
 
 export async function getDashboardKpis() {
   const { startDate, endDate, monthLabel } = getCurrentMonthWindow()
 
   const { data, error } = await supabase
-    .from('analytics_expenses')
-    .select(
-      `
-        parsed_amount
-      `
-    )
-    .gte('parsed_txn_date', startDate)
-    .lte('parsed_txn_date', endDate)
+    .from('analytics_expenses_v2')
+    .select('expense_amount')
+    .gte('expense_date', startDate)
+    .lt('expense_date', endDate)
 
   if (error) {
     throw new Error(error.message)
