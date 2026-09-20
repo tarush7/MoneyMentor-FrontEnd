@@ -8,11 +8,22 @@ function toIsoDate(value) {
 
 export function getCurrentMonthWindow() {
   const today = new Date()
-  const monthStartDate = new Date(today.getFullYear(), today.getMonth(), 1)
+
+  const monthStartDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    1
+  )
+
+  const tomorrow = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() + 1
+  )
 
   return {
     startDate: toIsoDate(monthStartDate),
-    endDate: toIsoDate(today),
+    endDate: toIsoDate(tomorrow),
     monthLabel: monthStartDate.toLocaleDateString('en-IN', {
       month: 'long',
       year: 'numeric',
