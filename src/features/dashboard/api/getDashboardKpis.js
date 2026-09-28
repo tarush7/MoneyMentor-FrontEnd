@@ -1,34 +1,6 @@
 import { supabase } from '../../../supabase'
 import { getCurrentMonthWindow } from '../utils/getCurrentMonthWindow'
 
-function sumAmounts(rows) {
-  return rows.reduce(
-    (total, row) => total + Number(row.expense_amount ?? 0),
-    0
-  )
-}
-
-// export async function getDashboardKpis() {
-//   const { startDate, endDate, monthLabel } = getCurrentMonthWindow()
-
-//   const { data, error } = await supabase
-//     .from('analytics_expenses_v2')
-//     .select('expense_amount')
-//     .gte('expense_date', startDate)
-//     .lt('expense_date', endDate)
-
-//   if (error) {
-//     throw new Error(error.message)
-//   }
-
-//   const expenseRows = data ?? []
-
-//   return {
-//     monthLabel,
-//     expenseRowCount: expenseRows.length,
-//     totalSpendThisMonth: sumAmounts(expenseRows),
-//   }
-// }
 
 
 export async function getDashboardKpis() {
@@ -40,33 +12,34 @@ export async function getDashboardKpis() {
     monthLabel,
   })
 
-  const { data, error } = await supabase
-    .from('analytics_expenses_v2')
-    .select('expense_date, expense_amount')
-    .gte('expense_date', startDate)
-    .lt('expense_date', endDate)
+  const { data, error } = await supabase.rpc(
+    'get_monthly_stats',
+    {
+      p_start_date: startDate,
+      p_end_date: endDate,
+    }
+  )
 
   if (error) {
     console.error('Dashboard Supabase error:', error)
     throw new Error(error.message)
   }
 
-  console.log('Dashboard rows from Supabase:', data)
-  console.log('Dashboard row count:', data?.length)
+  console.log('Dashboard KPI RPC response:', data)
 
-  console.log(
-    'Dashboard total:',
-    (data ?? []).reduce(
-      (total, row) => total + Number(row.expense_amount ?? 0),
-      0
-    )
-  )
-
-  const expenseRows = data ?? []
 
   return {
     monthLabel,
-    expenseRowCount: expenseRows.length,
-    totalSpendThisMonth: sumAmounts(expenseRows),
+    expenseRowCount: Number(
+      data?.expense_row_count ?? 0
+    ),
+
+    totalSpendThisMonth: Number(
+      data?.total_spend ?? 0
+    ),
+
+    averageExpense: Number(
+      data?.average_expense ?? 0
+    ),
   }
 }

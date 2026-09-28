@@ -21,6 +21,10 @@ export function getCurrentMonthWindow() {
     today.getDate() + 1
   )
 
+  console.log('Browser date:', today)
+  console.log('Start date:', toIsoDate(monthStartDate))
+  console.log('End date:', toIsoDate(tomorrow))
+
   return {
     startDate: toIsoDate(monthStartDate),
     endDate: toIsoDate(tomorrow),
