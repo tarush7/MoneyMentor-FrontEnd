@@ -1,6 +1,8 @@
 import AppShell from '../components/layout/AppShell'
+import CategoryBreakdownCard from '../features/dashboard/components/kpis/CategoryBreakdownCard'
 import TotalSpendThisMonthCard from '../features/dashboard/components/kpis/TotalSpendThisMonthCard'
-import { useDashboardKpisQuery } from '../features/dashboard/hooks/useDashboardKpisQuery'
+import { useCategoryBreakdownQuery } from '../features/dashboard/hooks/useCategoryBreakdownQuery'
+import { useMonthlyStatsQuery } from '../features/dashboard/hooks/useMonthlyStatsQuery'
 import { useAuth } from '../providers/AuthProvider'
 
 function joinClasses(...values) {
@@ -60,20 +62,23 @@ const rowGridClass = 'grid grid-cols-1 gap-4 md:grid-cols-6 lg:grid-cols-12'
 
 export default function DashboardPage() {
   const { isAuthReady, isAuthenticated } = useAuth()
-  const dashboardKpisQuery = useDashboardKpisQuery({
+  const monthlyStatsQuery = useMonthlyStatsQuery({
+    enabled: isAuthReady && isAuthenticated,
+  })
+  const categoryBreakdownQuery = useCategoryBreakdownQuery({
     enabled: isAuthReady && isAuthenticated,
   })
 
   return (
     <AppShell>
-      <div className="mx-auto max-w-7xl px-4 pb-16 pt-28 sm:px-6 lg:px-8 lg:pt-32">
+      <div className="mx-auto max-w-7xl px-3 pb-16 pt-28 sm:px-6 lg:px-8 lg:pt-32">
         <div className="mb-8 space-y-2">
           <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/70">
             Dashboard Layout
           </p>
-          <h1 className="text-4xl font-semibold tracking-tight text-white">Dashboard</h1>
+          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Dashboard</h1>
           <p className="max-w-2xl text-sm leading-6 text-white/55">
-            Wireframe-only layout for reviewing grid structure, spacing, and alignment.
+            Your monthly spending at a glance.
           </p>
         </div>
 
@@ -83,7 +88,7 @@ export default function DashboardPage() {
               <TotalSpendThisMonthCard
                 isAuthReady={isAuthReady}
                 isAuthenticated={isAuthenticated}
-                kpisQuery={dashboardKpisQuery}
+                kpisQuery={monthlyStatsQuery}
               />
             </div>
 
@@ -132,13 +137,11 @@ export default function DashboardPage() {
 
           <div className={rowGridClass}>
             <div className="md:col-span-6 lg:col-span-7">
-              <DashboardSkeletonCard
-                title="Sales Overview"
-                subtitle="Chart placeholder"
-                className="min-h-[300px]"
-              >
-                <PlaceholderPanel label="Large chart area" />
-              </DashboardSkeletonCard>
+              <CategoryBreakdownCard
+                isAuthReady={isAuthReady}
+                isAuthenticated={isAuthenticated}
+                breakdownQuery={categoryBreakdownQuery}
+              />
             </div>
 
             <div className="md:col-span-6 lg:col-span-5">

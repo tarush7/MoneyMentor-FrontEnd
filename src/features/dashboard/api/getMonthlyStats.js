@@ -3,7 +3,7 @@ import { getCurrentMonthWindow } from '../utils/getCurrentMonthWindow'
 
 
 
-export async function getDashboardKpis() {
+export async function getMonthlyStats() {
   const { startDate, endDate, monthLabel } = getCurrentMonthWindow()
 
   console.log('Dashboard date window:', {

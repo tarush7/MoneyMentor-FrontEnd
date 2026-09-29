@@ -440,7 +440,7 @@ export default function TransactionsTable({
       </div>
 
       <div className="hidden overflow-x-auto md:block">
-        <table className="table min-w-[920px] border-separate border-spacing-0 text-white">
+        <table className="w-full min-w-[920px] border-separate border-spacing-0 text-left text-sm text-white">
           <thead>
             <tr className="bg-white/[0.035]">
               <th className="border-b border-white/10 px-6 py-4 text-xs font-semibold uppercase tracking-[0.18em] text-white/[0.52]">

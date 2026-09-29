@@ -1,5 +1,5 @@
 export const dashboardKeys = {
   all: ['dashboard'],
-  kpis: () => [...dashboardKeys.all, 'kpis'],
-  kpiSet: (params) => [...dashboardKeys.kpis(), params],
+  monthlyStats: (params) => [...dashboardKeys.all, 'monthly-stats', params],
+  categoryBreakdown: (params) => [...dashboardKeys.all, 'category-breakdown', params],
 }
