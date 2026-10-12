@@ -1,8 +1,11 @@
 import AppShell from '../components/layout/AppShell'
 import CategoryBreakdownCard from '../features/dashboard/components/kpis/CategoryBreakdownCard'
+import BiggestExpenseThisMonthCard from '../features/dashboard/components/kpis/BiggestExpenseThisMonthCard'
+import TopExpensesCard from '../features/dashboard/components/kpis/TopExpensesCard'
 import TotalSpendThisMonthCard from '../features/dashboard/components/kpis/TotalSpendThisMonthCard'
 import { useCategoryBreakdownQuery } from '../features/dashboard/hooks/useCategoryBreakdownQuery'
 import { useMonthlyStatsQuery } from '../features/dashboard/hooks/useMonthlyStatsQuery'
+import { useTopExpensesQuery } from '../features/dashboard/hooks/useTopExpensesQuery'
 import { useAuth } from '../providers/AuthProvider'
 
 function joinClasses(...values) {
@@ -68,6 +71,9 @@ export default function DashboardPage() {
   const categoryBreakdownQuery = useCategoryBreakdownQuery({
     enabled: isAuthReady && isAuthenticated,
   })
+  const topExpensesQuery = useTopExpensesQuery({
+    enabled: isAuthReady && isAuthenticated,
+  })
 
   return (
     <AppShell>
@@ -92,7 +98,7 @@ export default function DashboardPage() {
               />
             </div>
 
-            {['Net Cash Flow This Month', 'Daily Burn Rate', 'Biggest Expense This Month'].map((title) => (
+            {['Net Cash Flow This Month', 'Daily Burn Rate'].map((title) => (
               <div key={title} className="md:col-span-3 lg:col-span-3">
                 <DashboardSkeletonCard
                   title={title}
@@ -101,6 +107,14 @@ export default function DashboardPage() {
                 />
               </div>
             ))}
+
+            <div className="md:col-span-3 lg:col-span-3">
+              <BiggestExpenseThisMonthCard
+                isAuthReady={isAuthReady}
+                isAuthenticated={isAuthenticated}
+                topExpensesQuery={topExpensesQuery}
+              />
+            </div>
           </div>
 
           <div className={rowGridClass}>
@@ -157,13 +171,11 @@ export default function DashboardPage() {
 
           <div className={rowGridClass}>
             <div className="md:col-span-6 lg:col-span-8">
-              <DashboardSkeletonCard
-                title="Projects"
-                subtitle="Table placeholder"
-                className="min-h-[320px]"
-              >
-                <PlaceholderRows rows={5} />
-              </DashboardSkeletonCard>
+              <TopExpensesCard
+                isAuthReady={isAuthReady}
+                isAuthenticated={isAuthenticated}
+                topExpensesQuery={topExpensesQuery}
+              />
             </div>
 
             <div className="md:col-span-6 lg:col-span-4">

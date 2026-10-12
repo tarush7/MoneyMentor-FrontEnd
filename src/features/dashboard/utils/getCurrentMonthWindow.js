@@ -7,7 +7,8 @@ function toIsoDate(value) {
 }
 
 export function getCurrentMonthWindow() {
-  const today = new Date()
+  // Temporary September 2026 preview. Restore new Date() for the live month.
+  const today = new Date(2026, 8, 30)
 
   const monthStartDate = new Date(
     today.getFullYear(),
@@ -21,7 +22,7 @@ export function getCurrentMonthWindow() {
     today.getDate() + 1
   )
 
-  console.log('Browser date:', today)
+  console.log('Dashboard reference date:', today)
   console.log('Start date:', toIsoDate(monthStartDate))
   console.log('End date:', toIsoDate(tomorrow))
 
