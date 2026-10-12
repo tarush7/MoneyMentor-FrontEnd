@@ -121,8 +121,8 @@ export default function CategoryBreakdownCard({
   isAuthReady,
   isAuthenticated,
   breakdownQuery,
+  monthLabel = 'Selected month',
 }) {
-  const monthLabel = breakdownQuery.data?.monthLabel ?? 'Current month'
   const categoryData = breakdownQuery.data?.categories
   const categories = useMemo(
     () => categoryData?.filter((item) => item.total > 0) ?? [],
@@ -139,7 +139,7 @@ export default function CategoryBreakdownCard({
   } else if (breakdownQuery.isError) {
     content = <CardMessage toneClassName="text-rose-200">Unable to load category spending right now</CardMessage>
   } else if (categories.length === 0) {
-    content = <CardMessage>No category spending for this month yet</CardMessage>
+    content = <CardMessage>No category spending for this period</CardMessage>
   } else {
     content = (
       <div className="grid min-w-0 flex-1 items-center gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(210px,0.85fr)] lg:gap-6">
@@ -175,7 +175,7 @@ export default function CategoryBreakdownCard({
         <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold tracking-tight text-white">Category Breakdown</h2>
-            <p className="text-sm leading-6 text-white/45">Where your spending went this month</p>
+            <p className="text-sm leading-6 text-white/45">Where your spending went for {monthLabel}</p>
           </div>
           <span className="rounded-full border border-cyan-200/10 bg-cyan-200/[0.06] px-3 py-1 text-xs font-medium text-cyan-100/75">
             {monthLabel}

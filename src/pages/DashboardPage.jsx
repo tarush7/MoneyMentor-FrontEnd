@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import AppShell from '../components/layout/AppShell'
+import DashboardMonthPicker from '../features/dashboard/components/DashboardMonthPicker'
 import CategoryBreakdownCard from '../features/dashboard/components/kpis/CategoryBreakdownCard'
 import BiggestExpenseThisMonthCard from '../features/dashboard/components/kpis/BiggestExpenseThisMonthCard'
 import TopExpensesCard from '../features/dashboard/components/kpis/TopExpensesCard'
@@ -7,6 +9,7 @@ import { useCategoryBreakdownQuery } from '../features/dashboard/hooks/useCatego
 import { useMonthlyStatsQuery } from '../features/dashboard/hooks/useMonthlyStatsQuery'
 import { useTopExpensesQuery } from '../features/dashboard/hooks/useTopExpensesQuery'
 import { useAuth } from '../providers/AuthProvider'
+import { getMonthWindow } from '../features/dashboard/utils/getMonthWindow'
 
 function joinClasses(...values) {
   return values.filter(Boolean).join(' ')
@@ -64,28 +67,34 @@ function PlaceholderRows({ rows = 4 }) {
 const rowGridClass = 'grid grid-cols-1 gap-4 md:grid-cols-6 lg:grid-cols-12'
 
 export default function DashboardPage() {
-  const { isAuthReady, isAuthenticated } = useAuth()
+  const { isAuthReady, isAuthenticated, user } = useAuth()
+  const [selectedMonthKey, setSelectedMonthKey] = useState(null)
+  const { monthKey, monthLabel } = getMonthWindow(selectedMonthKey)
+  const queryOptions = { monthKey, userId: user?.id, enabled: isAuthReady && isAuthenticated }
   const monthlyStatsQuery = useMonthlyStatsQuery({
-    enabled: isAuthReady && isAuthenticated,
+    ...queryOptions,
   })
   const categoryBreakdownQuery = useCategoryBreakdownQuery({
-    enabled: isAuthReady && isAuthenticated,
+    ...queryOptions,
   })
   const topExpensesQuery = useTopExpensesQuery({
-    enabled: isAuthReady && isAuthenticated,
+    ...queryOptions,
   })
 
   return (
     <AppShell>
       <div className="mx-auto max-w-7xl px-3 pb-16 pt-28 sm:px-6 lg:px-8 lg:pt-32">
-        <div className="mb-8 space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/70">
-            Dashboard Layout
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Dashboard</h1>
-          <p className="max-w-2xl text-sm leading-6 text-white/55">
-            Your monthly spending at a glance.
-          </p>
+        <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="space-y-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-cyan-200/70">
+              Dashboard Layout
+            </p>
+            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">Dashboard</h1>
+            <p className="max-w-2xl text-sm leading-6 text-white/55">
+              Your monthly spending at a glance.
+            </p>
+          </div>
+          <DashboardMonthPicker monthKey={monthKey} onMonthChange={setSelectedMonthKey} />
         </div>
 
         <div className="space-y-4">
@@ -95,10 +104,11 @@ export default function DashboardPage() {
                 isAuthReady={isAuthReady}
                 isAuthenticated={isAuthenticated}
                 kpisQuery={monthlyStatsQuery}
+                monthLabel={monthLabel}
               />
             </div>
 
-            {['Net Cash Flow This Month', 'Daily Burn Rate'].map((title) => (
+            {['Net Cash Flow', 'Daily Burn Rate'].map((title) => (
               <div key={title} className="md:col-span-3 lg:col-span-3">
                 <DashboardSkeletonCard
                   title={title}
@@ -113,6 +123,7 @@ export default function DashboardPage() {
                 isAuthReady={isAuthReady}
                 isAuthenticated={isAuthenticated}
                 topExpensesQuery={topExpensesQuery}
+                monthLabel={monthLabel}
               />
             </div>
           </div>
@@ -155,6 +166,7 @@ export default function DashboardPage() {
                 isAuthReady={isAuthReady}
                 isAuthenticated={isAuthenticated}
                 breakdownQuery={categoryBreakdownQuery}
+                monthLabel={monthLabel}
               />
             </div>
 
@@ -175,6 +187,7 @@ export default function DashboardPage() {
                 isAuthReady={isAuthReady}
                 isAuthenticated={isAuthenticated}
                 topExpensesQuery={topExpensesQuery}
+                monthLabel={monthLabel}
               />
             </div>
 

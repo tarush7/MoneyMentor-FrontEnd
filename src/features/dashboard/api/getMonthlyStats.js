@@ -1,10 +1,10 @@
 import { supabase } from '../../../supabase'
-import { getCurrentMonthWindow } from '../utils/getCurrentMonthWindow'
+import { getMonthWindow } from '../utils/getMonthWindow'
 
 
 
-export async function getMonthlyStats() {
-  const { startDate, endDate, monthLabel } = getCurrentMonthWindow()
+export async function getMonthlyStats({ monthKey, signal } = {}) {
+  const { startDate, endDate, monthLabel } = getMonthWindow(monthKey)
 
   console.log('Dashboard date window:', {
     startDate,
@@ -18,7 +18,7 @@ export async function getMonthlyStats() {
       p_start_date: startDate,
       p_end_date: endDate,
     }
-  )
+  ).abortSignal(signal)
 
   if (error) {
     console.error('Dashboard Supabase error:', error)
@@ -34,7 +34,7 @@ export async function getMonthlyStats() {
       data?.expense_row_count ?? 0
     ),
 
-    totalSpendThisMonth: Number(
+    totalSpend: Number(
       data?.total_spend ?? 0
     ),
 

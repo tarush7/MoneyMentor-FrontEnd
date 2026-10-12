@@ -25,6 +25,7 @@ export default function TopExpensesCard({
   isAuthReady,
   isAuthenticated,
   topExpensesQuery,
+  monthLabel = 'Selected month',
 }) {
   let content
 
@@ -37,10 +38,10 @@ export default function TopExpensesCard({
   } else if (topExpensesQuery.isError) {
     content = <CardMessage toneClassName="text-rose-200">Unable to load top expenses right now</CardMessage>
   } else if (topExpensesQuery.data.length === 0) {
-    content = <CardMessage>No expenses recorded this month yet</CardMessage>
+    content = <CardMessage>No expenses recorded for this period</CardMessage>
   } else {
     content = (
-      <ol className="space-y-2" aria-label="Top expenses this month">
+      <ol className="space-y-2" aria-label={`Top expenses for ${monthLabel}`}>
         {topExpensesQuery.data.map((expense, index) => (
           <li
             key={expense.transactionId ?? `${expense.date}-${index}`}
@@ -72,7 +73,7 @@ export default function TopExpensesCard({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold tracking-tight text-white">Top Expenses</h2>
-            <p className="text-sm leading-6 text-white/45">Largest expenses this month</p>
+            <p className="text-sm leading-6 text-white/45">Largest expenses for {monthLabel}</p>
           </div>
           <span className="rounded-full border border-cyan-200/10 bg-cyan-200/[0.06] px-3 py-1 text-xs font-medium text-cyan-100/75">
             Top 5

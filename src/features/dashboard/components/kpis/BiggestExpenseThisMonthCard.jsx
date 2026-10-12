@@ -5,9 +5,10 @@ export default function BiggestExpenseThisMonthCard({
   isAuthReady,
   isAuthenticated,
   topExpensesQuery,
+  monthLabel = 'Selected month',
 }) {
   let value = 'Loading...'
-  let meta = 'Finding your largest expense this month'
+  let meta = 'Finding your largest expense'
   let toneClassName = 'text-cyan-100'
 
   if (!isAuthReady) {
@@ -24,14 +25,14 @@ export default function BiggestExpenseThisMonthCard({
   } else if (topExpensesQuery.isSuccess) {
     const biggestExpense = topExpensesQuery.data[0]
     value = biggestExpense ? formatInrAmount(biggestExpense.amount) : 'No expenses'
-    meta = biggestExpense?.merchant ?? 'No expenses recorded this month'
+    meta = biggestExpense?.merchant ?? 'No expenses recorded for this period'
     toneClassName = 'text-white'
   }
 
   return (
     <DashboardKpiCard
-      title="Biggest Expense This Month"
-      subtitle="Largest single expense"
+      title="Biggest Expense"
+      subtitle={`Largest single expense · ${monthLabel}`}
       value={value}
       meta={meta}
       toneClassName={toneClassName}

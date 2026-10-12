@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Option Wheel interaction fixture</title></head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React, { useEffect, useState } from 'react'
+      import { createRoot } from 'react-dom/client'
+      import OptionWheel from '/src/components/reactbits/OptionWheel.jsx'
+      import '/src/index.css'
+
+      const params = new URLSearchParams(location.search)
+      const items = Array.from({ length: 12 }, (_, month) => new Intl.DateTimeFormat('en', { month: 'long' }).format(new Date(2026, month, 1)))
+      const fixture = window.__wheelFixture = { commits: [], previews: [], ready: false }
+
+      function Fixture() {
+        const [mounted, setMounted] = useState(true)
+        const [generation, setGeneration] = useState(0)
+        const [selected, setSelected] = useState(9)
+        useEffect(() => {
+          fixture.unmount = () => setMounted(false)
+          fixture.replace = () => setGeneration((value) => value + 1)
+          fixture.ready = true
+        }, [])
+        return React.createElement('div', { style: { padding: '40px', width: '300px' } },
+          React.createElement('p', null, items[selected]),
+          React.createElement('div', { style: { height: '180px' } }, mounted && React.createElement(OptionWheel, {
+            key: generation, items, defaultSelected: selected, selectOnSettle: params.has('auto'), settleDelay: 180,
+            fontSize: 1.125, spacing: 3, smoothing: 100, inset: 24, blur: 0, visibleItems: 3,
+            onChange: (index) => fixture.previews.push(index),
+            onSelect: (index, label) => {
+              fixture.commits.push({ index, label, time: performance.now() })
+              setSelected(index)
+            },
+          })),
+        )
+      }
+      createRoot(document.getElementById('root')).render(React.createElement(Fixture))
+    </script>
+  </body>
+</html>

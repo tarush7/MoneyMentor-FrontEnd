@@ -1,8 +1,8 @@
 import { supabase } from '../../../supabase'
-import { getCurrentMonthWindow } from '../utils/getCurrentMonthWindow'
+import { getMonthWindow } from '../utils/getMonthWindow'
 
-export async function getCategoryBreakdown() {
-  const { startDate, endDate, monthLabel } = getCurrentMonthWindow()
+export async function getCategoryBreakdown({ monthKey, signal } = {}) {
+  const { startDate, endDate, monthLabel } = getMonthWindow(monthKey)
 
   console.log('Category breakdown date window:', {
     startDate,
@@ -16,7 +16,7 @@ export async function getCategoryBreakdown() {
       p_start_date: startDate,
       p_end_date: endDate,
     }
-  )
+  ).abortSignal(signal)
 
   if (error) {
     console.error('Category breakdown Supabase error:', error)

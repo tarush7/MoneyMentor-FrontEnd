@@ -1,14 +1,14 @@
 import { supabase } from '../../../supabase'
-import { getCurrentMonthWindow } from '../utils/getCurrentMonthWindow'
+import { getMonthWindow } from '../utils/getMonthWindow'
 
-export async function getTopExpenses(limit = 5) {
-  const { startDate, endDate } = getCurrentMonthWindow()
+export async function getTopExpenses({ monthKey, limit = 5, signal } = {}) {
+  const { startDate, endDate } = getMonthWindow(monthKey)
 
   const { data, error } = await supabase.rpc('get_top_expenses', {
     p_start_date: startDate,
     p_end_date: endDate,
     p_limit_count: limit,
-  })
+  }).abortSignal(signal)
 
   if (error) {
     console.error('Top expenses RPC error:', error)
